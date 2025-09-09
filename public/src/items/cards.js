@@ -54,7 +54,7 @@ export const defaultCardStatus = [
         status: "In Progress",
         icon: "offline_bolt",
         color: "#7025e8",
-        scoreAdjust: 5,
+        scoreAdjust: 2,
         quickButtons: [
             {
                 icon: "satellite_alt",
@@ -96,7 +96,7 @@ export const defaultCardStatus = [
         status: "Final Touch",
         icon: "nest_farsight_heat",
         color: "#1bdabaff",
-        scoreAdjust: 2, 
+        scoreAdjust: 5, 
         quickButtons: [
             {
                 icon: "wand_stars",
