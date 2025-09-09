@@ -1,4 +1,4 @@
-import { areaNotify, iconNotify, pageLogin, pageRegister, pageCardsMasonryList, textNotifyContent, areaEventLoading, txtEventLoading, iconEventLoading, txtEventLoadingEventRemaining } from "../config/dom-elements";
+import { areaNotify, iconNotify, pageLogin, pageRegister, pageCardsMasonryList, textNotifyContent, areaEventLoading, txtEventLoading, iconEventLoading, txtEventLoadingEventRemaining } from "../config/DOMElements";
 import { remainingEventCount } from "../events/events";
 import * as pgMasonry from "./pages/page-masonry";
 

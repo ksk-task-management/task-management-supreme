@@ -1,4 +1,4 @@
-import { btnLogin, btnLoginGotoRegister, btnLoginPasswordBlinder, btnLoginSwitchMode, btnRegGotoLogin, btnRegisterCreateAccount, btnsCreateCard, inputLoginEmail, inputLoginPassword, inputLoginUsername, inputRegEmail, inputRegLastName, inputRegMiddleName, inputRegName, inputRegPassword, inputRegPasswordConfirm, inputRegUsername, txtLoginEmail, txtLoginUsername } from "./config/dom-elements";
+import { btnLogin, btnLoginGotoRegister, btnLoginPasswordBlinder, btnLoginSwitchMode, btnRegGotoLogin, btnRegisterCreateAccount, btnsCreateCard, inputLoginEmail, inputLoginPassword, inputLoginUsername, inputRegEmail, inputRegLastName, inputRegMiddleName, inputRegName, inputRegPassword, inputRegPasswordConfirm, inputRegUsername, txtLoginEmail, txtLoginUsername } from "./config/DOMElements";
 import { addUser, fetchUsers, googleWebBuildAPI, postCloudData } from "./databases/google-sheets";
 import { loadCloudDataToLocal } from "./databases/local-data";
 import { appendEvent } from "./events/events";
