@@ -1,4 +1,4 @@
-import { modalContainer } from "../config/DOMElements";
+import { modalContainer } from "../config/dom-elements";
 import { postCloudData } from "../databases/google-sheets";
 import { loadCloudCardData } from "../databases/local-data";
 import { appendEvent } from "../events/events";
