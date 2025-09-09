@@ -24,7 +24,6 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
     const isAdditive = options?.additive === true;
     const forceDataToBeValue = options?.forceDataToBeValue === true;
 
-    //console.log("Generaring caret for value type:", valueType);
     var newInputField = null;
     if (!isInline) {
         newInputField = document.createElement('input');
@@ -36,7 +35,8 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
         newInputField = document.createElement('span');
         newInputField.contentEditable = true;
         newInputField.role = 'textbox';
-        newInputField.classList.add('editor', 'input-block-value', 'block-insert-omit');
+        newInputField.setAttribute('data-value-type', valueType.replace('*', "•ᴗ•"));
+        newInputField.classList.add('editor', 'input-block-value', 'block-insert-omit', 'inline');
         newInputField.addEventListener('click', ev => {
             ev.target.focus();
         });

@@ -200,6 +200,36 @@ body {
     text-shadow: var(--shadow-min);
 }
 
+/*Value display: Inline-Refers*/
+.inline-value-display-refer-area {
+    background-color: rgba(82, 205, 111, 0.45);
+    border: rgb(11, 132, 29) 1px solid;
+    border-radius: 5px;
+    padding: 2px;
+    margin-left: 4px;
+}
+
+.input-inline-display-refer {
+    font-weight: 500;
+    background-color: rgba(0, 128, 0, 0.381);
+    border-radius: 5px;
+    padding: 0px 7px;
+    margin-left: 2px;
+    color: rgb(8, 47, 8);
+}
+
+.input-inline-display-refer:empty::after {
+    content: "";
+    display: inline-block;
+    width: 30px;
+    height: 16px;
+}
+
+.inline-value-display-refer-area .icon {
+    color: rgb(11, 132, 29) !important;
+    text-shadow: var(--shadow-min);
+}
+
 /*Buttons*/
 .btn-normal {
     color: rgb(95, 95, 95);
@@ -868,9 +898,10 @@ body {
     display: inline;
     position: relative;
     width: fit-content;
+    position: relative;
     min-width: 20px !important;
     max-width: 100%;
-    padding: 5px;
+    padding: 1px 5px;
     border-radius: 5px;
     outline: none;
     margin-left: 4px;
@@ -878,6 +909,18 @@ body {
 
 .editor.input-block-value:empty {
     border: #c1c1c1 dashed 1px;
+}
+
+.editor.input-block-value.inline:empty:not(:focus)::after {
+    content: attr(data-value-type);
+    position: relative;
+    display: inline;
+    width: fit-content;
+    height: 13px;
+    font-weight: 500;
+    text-align: center;
+    color: rgb(206, 206, 206);
+    pointer-events: none !important;
 }
 
 /*Value with inline blocks*/

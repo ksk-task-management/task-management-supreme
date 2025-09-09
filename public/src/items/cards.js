@@ -945,6 +945,39 @@ export const elementTemplates = [
                 represent: ['text']
             }
         }
+    },
+    {
+        key: ["refer"],
+        icon: () => {
+            var result = "graph_";
+            const graphNumber = 7;
+            result += (Math.floor(Math.random() * graphNumber) + 1);
+            return result;
+        },
+        return: {
+            "refer": {
+                value: (template, dat) => {
+
+                },
+                editor: (template, dat) => {
+                    const referAreaHtml = document.createElement('span');
+                    referAreaHtml.classList.add('inline-value-display-refer-area');
+                    if (template) {
+                        const referIcon = document.createElement('span');
+                        referIcon.classList.add('icon', 'material-symbols-outlined');
+                        referIcon.textContent = template.icon();
+                        referAreaHtml.appendChild(referIcon);
+                    }
+                    const referTxtArea = document.createElement('span');
+                    referTxtArea.classList.add('input-inline-display-refer');
+                    referTxtArea.role = 'textbox';
+                    referTxtArea.contentEditable = true;
+                    referAreaHtml.appendChild(referTxtArea);
+                    return referAreaHtml;
+                },
+                represent: ["text"]
+            }
+        }
     }
 ];
 
