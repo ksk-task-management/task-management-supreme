@@ -147,6 +147,57 @@ body {
     background-color: transparent;
 }
 
+.inline-value-display-url-area {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-items: center;
+    gap: 3px;
+    background-color: rgba(103, 103, 103, 0.15);
+    border: #a3a3a3 1px solid;
+    border-radius: 13px;
+    padding: 4px 4px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.inline-value-display-url {
+    position: relative;
+    color:#6d686a;
+    padding: 2px 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 3px;
+}
+
+.inline-value-display-url::after {
+    content: "";
+    position: absolute;
+    display: inline-flex;
+    width: 0;
+    height: 16px;
+    border-right: rgba(82, 82, 82, 0.236) 1.5px solid;
+    right: 1.5px;
+    top: 25%;
+}
+
+.btn-inline-small-normal {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    width: fit-content;
+    height: fit-content;
+    background-color: rgba(48, 48, 48, 0.1);
+    border: rgb(116, 116, 116) 1px solid;
+    border-radius: 10px;
+    padding: 4px;
+    cursor: pointer;
+    color: rgb(69, 69, 69);
+    font-size: 16px;
+    text-shadow: var(--shadow-min);
+}
 
 /*Buttons*/
 .btn-normal {

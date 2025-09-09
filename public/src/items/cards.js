@@ -604,29 +604,16 @@ export const elementTemplates = [
                         const innerURLText = document.createElement('span');
                         innerURLText.classList.add('inline-value-display-url');
                         innerURLText.textContent = linkVal;
+                        linkHtml.appendChild(innerURLText);
                         const btnCopy = document.createElement('span');
                         btnCopy.classList.add('icon', 'material-symbols-outlined', 'btn-inline-small-normal');
                         btnCopy.textContent = 'content_copy';
                         btnCopy.title = 'Copy to Clipboard';
                         btnCopy.addEventListener('click', ev => {
                             ev.stopPropagation();
-                            navigator.permissions.query({ name: 'clipboard-write' }).then(result => {
-    if (result.state === 'granted' || result.state === 'prompt') {
-        // Permission is granted or can be requested
-        navigator.clipboard.writeText(linkVal).then(() => {
-            console.log("Text copied to clipboard successfully!");
-        }).catch(err => {
-            console.error("Failed to copy text: ", err);
-        });
-    } else {
-        // Permission is denied
-        console.error("Clipboard access is denied.");
-        // Implement fallback here
-    }
-});
                             navigator.clipboard.writeText(linkVal)
-            .then(() => console.log('Text copied successfully!'))
-            .catch(err => console.error('Failed to copy text: ', err));
+                                .then(() => console.log('Text copied successfully!'))
+                                    .catch(err => console.error('Failed to copy text: ', err));
                             btnCopy.textContent = 'check';
                             setTimeout(() => {
                                 btnCopy.textContent = 'content_copy';
@@ -635,14 +622,13 @@ export const elementTemplates = [
                         linkHtml.appendChild(btnCopy);
                         const btnOpen = document.createElement('span');
                         btnOpen.classList.add('icon', 'material-symbols-outlined', 'btn-inline-small-normal');
-                        btnOpen.textContent = 'open_in_new';
+                        btnOpen.textContent = 'language';
                         btnOpen.title = 'Open Link in New Tab';
                         btnOpen.addEventListener('click', ev => {
                             ev.stopPropagation();
                             window.open(linkVal, '_blank');
                         });
                         linkHtml.appendChild(btnOpen);
-                        linkHtml.appendChild(innerURLText);
                         return linkHtml;
                     }
                 }
