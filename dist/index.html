@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management</title>
+     <script src="https://cdn.tailwindcss.com"></script>
+     <!--K2D Fonts-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=K2D:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+
+
+    <!--Icom Select Role-->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!--Icon: Select Affiliation-->
+
+    <!-- Custom CSS -->
+
+  <script type="module" crossorigin src="/assets/index-B_WU_lCy.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CZdMXbqE.css">
+</head>
+<body>
+    <div id="area-notify" class="placement-stick-fixed-top area-horizontal area-center area-fill-horizontal area-fit-vertical hidden">
+        <span id="icon-notify" class="material-symbols-outlined icon">assignment_ind</span>
+        <div id="txt-notify-content" class="txt-alert">Username already exists</div>
+    </div>
+
+    <div id="area-eventloading" class="area-horizontal area-center area-fit-horizontal placement-stick-fixed-top-left placement-top-left-5 hidden">
+        <span id="area-eventload-visualizing-zone" class="area-horizontal area-center area-fill-horizontal">
+            <span id="icon-area-eventload" class="material-symbols-outlined icon txt-eventload">hourglass</span>
+            <div id="txt-area-eventload-eventremaining" class="txt-eventload">999</div>
+        </span>
+        <span id="txt-area-eventload" class="txt-eventload">Event Loading...</span>
+    </div>
+
+    <div id="main-container" class="main-container">
+        <!--Page: Login-->
+        <div id="page-login" class="panel area-fit area-padding20">
+            <div id="txt-login-username" class="txt-header hidden">Username</div>
+            <input type="text" id="input-login-username" placeholder="Enter your username" class="input-username input-text hidden">
+            <div id="txt-login-email" class="txt-header">E-mail</div>
+            <input type="email" id="input-login-email" placeholder="Enter your email" class="input-email input-text">
+            <div id="txt-login-password" class="txt-header">Password</div>
+            <div class="area-horizontal">
+                <input type="password" id="input-login-password" placeholder="Enter your password" class="input-password input-text">
+                <div id="btn-begin-password-visible" class="btn-normal btn-square area-horizontal area-center area-fill-vertical area-fit-horizontal">
+                    <span class="material-symbols-outlined icon">visibility</span>
+                </div>
+            </div>
+            <button id="btn-login" locale="login" class="btn-normal btn-primary area-fill-horizontal btn-stack">Login</button>
+            <button id="btn-login-switchmode" class="btn-normal btn-gray area-fill-horizontal btn-stack">Or Login with Username</button>
+            <div class="area-space-vertical-medium"></div>
+            <div class="area-horizontal">
+                <div>
+                    <span class="txt-smaller">Don't have an account?</span>
+                    <button id="btn-login-goto-register" class="btn-register txt-clickable txt-smaller color-primary">Create One</button>
+                </div>
+            </div>
+        </div>
+
+        <!--Register Page-->
+        <div id="page-register" class="page-register panel area-padding20 area-fit-lim-handheld-90 hidden">
+            <div class="area-horizontal area-fit">
+                <div class="area-vertical">
+                    <div id="txt-register-name" class="txt-header" locale="name">Name</div>
+                    <input type="text" id="input-register-name" placeholder="Enter your name" class="input-register-name input-text">
+                </div>
+                <div class="area-vertical">
+                     <div id="txt-register-middlename" class="txt-header" locale="middleName">Middle Name</div>
+                    <input type="text" id="input-register-middlename" placeholder="-" class="input-register-middlename input-text">
+                </div>
+                <div class="area-vertical">
+                    <div id="txt-register-lastname" class="txt-header" locale="lastName">Last Name</div>
+                    <input type="text" id="input-register-lastname" placeholder="Enter your last name" class="input-register-lastname input-text">
+                </div>
+            </div>
+            <div id="txt-register-email" class="txt-header">E-mail</div>
+            <input type="email" id="input-register-email" placeholder="Enter your email" class="input-register-email input-text">
+            <div class="separator-horizontal"></div>
+            <div id="txt-register-username" class="txt-header">Username</div>
+            <input type="text" id="input-register-username" placeholder="Create your new username" class="input-register-username input-text">
+            <div id="txt-register-password" class="txt-header">Password</div>
+            <div class="area-horizontal">
+                <input type="password" id="input-register-password" placeholder="Create your new password" class="input-register-password input-text">
+                <div id="btn-reg-password-visible" class="btn-normal btn-square area-horizontal area-center area-fill-vertical area-fit-horizontal">
+                    <span class="material-symbols-outlined icon">visibility</span>
+                </div>
+            </div>
+            <div id="txt-register-password-confirm" class="txt-header">Confirm Password</div>
+            <div class="area-horizontal">
+                <input type="password" id="input-register-password-confirm" placeholder="Confirm your new password" class="input-register-password-confirm input-text">
+                <div id="btn-reg-password-confirm-visible" class="btn-normal btn-square area-horizontal area-center area-fill-vertical area-fit-horizontal">
+                    <span class="material-symbols-outlined icon">visibility</span>
+                </div>
+            </div>'
+            <div class="area-horizontal area-fit-vertical">
+                <button id="btn-register-goto-login" class="btn-login btn-square btn-normal area-horizontal area-center area-fill-vertical area-fit-horizontal">
+                    <span class="material-symbols-outlined icon">keyboard_tab_rtl</span>
+                </button>
+                <button id="btn-register-newaccount" class="btn-normal btn-primary area-fill-horizontal area-fill-vertical">Register</button>
+            </div>
+        </div>
+
+        <!--Masonry-List Cards Page-->
+        <div id="page-cards-masonrylist" class="page-masonry page-full area-padding20 hidden">
+            <button id="btn-masonrylist-add-card" class="btn-create-card btn-normal btn-gray area-fit-horizontal">Add Card</button>
+            <div id="masonrylist-container" class="masonrylist-container"></div>
+        </div>
+
+        <!--Modal Windows-->
+        <div id="modal-container" class="modal-container hidden"></div>
+    </div>
+</body>
+</html>
