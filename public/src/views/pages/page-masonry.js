@@ -38,8 +38,8 @@ function renderCards() {
         cardBodyArea.classList.add('card-body-area');
         cardHtml.appendChild(cardBodyArea);
         cardDataArray.forEach(blockDat => {
-            //console.log("--Begin Examind Block:", blockDat);
-            const blockHtml = cardDataManage.getReturnValue("html", cardDataManage.makeValue(blockDat.key, blockDat), null, "value");
+            console.log("--Begin Examind Block:", blockDat);
+            const blockHtml = cardDataManage.getReturnValue("html", blockDat, null, "value");
             if (blockHtml && typeof blockHtml === 'object') {
                 cardBodyArea.appendChild(blockHtml);
             }

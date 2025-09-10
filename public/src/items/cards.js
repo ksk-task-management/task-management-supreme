@@ -396,14 +396,37 @@ export const elementTemplates = [
             "html": {
                 value: (template, dat) => 
                 {
-                    const setValue = cardDataManage.getReturnValue("set-*", dat, "items", "value");
                     const arrayContainerHtml = document.createElement('div');
                     arrayContainerHtml.classList.add('display-container');
                     arrayContainerHtml.style.width = '100%';
                     arrayContainerHtml.style.height = 'fit-content';
-                    setValue?.forEach(val => {
+                    const initialValue = cardDataManage.getReturnValue("set-*", dat, "items", "value");
+                    const setValue = [initialValue];
+                    //Populate (flatten the array results)
+                    //console.log("$$$$$$$ Set Value: ", setValue);
+                    while (setValue.some(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)))) {
+                        const idxNestedArray = setValue.findIndex(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)));
+                        const nestedValue = Array.isArray(setValue[idxNestedArray]) ? setValue[idxNestedArray] : [setValue[idxNestedArray]];
+                        const tempResult = [];
+                        nestedValue.forEach(nv => {
+                            if (!cardDataManage.isMatter(nv))
+                                return;
+                            //console.log("&&&&&&& Begin Examine spliced portion", nv);
+                            const r = cardDataManage.getReturnValue("*", nv, "*", "value");
+                            if (!cardDataManage.isMatter(r))
+                                return;
+                            if (Array.isArray(r)) {
+                                r.forEach(rr => tempResult.push(rr));
+                            }
+                            else
+                                tempResult.push(r);
+                        });
+                        setValue.splice(idxNestedArray, 1, ...tempResult);
+                        //console.log("Spliced some nested array:", idxNestedArray, setValue, "--->", nestedValue, tempResult);
+                    }
+
+                    setValue?.forEach(valValue => {
                         //May be use valueType = "*" but afraid of unexoected results
-                        const valValue = cardDataManage.getReturnValue("html|*", val, "*", "value");
                         if (!valValue) return;
                         const valContainer = document.createElement('div');
                         valContainer.style.display = 'inline-block';
@@ -454,6 +477,7 @@ export const elementTemplates = [
             "html": {
                 value: (template, dat) => {
                     var setValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
+                    console.log("Numbered list - ", dat, "is getting HTML result", setValue);
                     const valueEntryArray = [];
                     if (setValue && !(setValue instanceof Node)) {
                         if (Array.isArray(setValue)) {
@@ -461,33 +485,43 @@ export const elementTemplates = [
                             const arraySatisfy = cardDataManage.checkValueReturnSatisfaction(arrayDistTemplate, "html");
                             if (arraySatisfy && arraySatisfy.length > 0) {
                                 setValue = arraySatisfy[0].value(arrayDistTemplate, dat) ?? null;
-                                console.log("Converted Set to Html", setValue);
-                            }
-                        }
-                    }
-                   
-                    if (setValue && setValue instanceof Node) {
-                        var testHtml = setValue;
-                        while (testHtml && testHtml instanceof Node && testHtml.classList.contains('display-container')) {
-                            if (testHtml.childNodes.length > 1) {
-                                testHtml.childNodes.forEach(cn => {
-                                    if (cn instanceof HTMLElement){
-                                        valueEntryArray.push(cn);
-                                    }
-                                });
-                                testHtml = null;
-                            }
-                            else if (testHtml.childNodes.length === 1) {
-                                testHtml = testHtml.childNodes[0];
-                            }
-                            else {
-                                testHtml = null;
                             }
                         }
                     }
 
+                    const candidateParents = [];
+                    if (setValue && setValue instanceof Node) {
+                        const unclearedEntry = [setValue];
+                        while (unclearedEntry.some(u => Array.isArray(u) || u.classList.contains('display-container'))) {
+                            const thatIdx = unclearedEntry.findIndex(u => Array.isArray(u) || u.classList.contains('display-container'));
+                            const newOnes = [];
+                            if (Array.isArray(unclearedEntry[thatIdx])) {
+                                unclearedEntry[thatIdx].forEach(i => {
+                                    newOnes.push(i);
+                                });
+                            }
+                            else if (unclearedEntry[thatIdx] instanceof Node) {
+                                unclearedEntry[thatIdx].childNodes.forEach(i => {
+                                    newOnes.push(i);
+                                });
+                                candidateParents.push(unclearedEntry[thatIdx]);
+                            }
+                            unclearedEntry.splice(thatIdx, 1, ...newOnes);
+                        }
+
+                        unclearedEntry.forEach(i => {
+                            if (i instanceof HTMLElement) {
+                                valueEntryArray.push(i);
+                            }
+                        });
+                    }
+
+                    console.log(candidateParents);
+
+                    //console.log("Value for numbered list:", valueEntryArray);
                     if (valueEntryArray.length > 0){
                         valueEntryArray.forEach((ve, idx) => {
+                            //console.log(ve, "Has been prepended.");
                             const numBadge = document.createElement('span');
                             numBadge.classList.add('num-badge');
                             numBadge.style.backgroundColor = '#787a7d';
@@ -522,13 +556,17 @@ export const elementTemplates = [
         return: {
             "html":{
                 value: (template, dat) => {
+                    //console.log("---------------Image Block Request a result: ");
                     const imgVal = cardDataManage.getReturnValue('text|url|imagebase', dat, "source", "value");
+                    //console.log("^^^^^^^^^Image get result: ", imgVal);
                     if (imgVal) {
                         const imgHtml = document.createElement('img');
                         imgHtml.src = imgVal;
                         imgHtml.style.borderRadius = '5px';
+                        //console.log("Path 1", imgHtml);
                         return imgHtml;
                     }
+                    //console.log("Path 2");
                     return null;
                 }
             },
@@ -597,6 +635,7 @@ export const elementTemplates = [
         return: {
             "html": {
                 value: (template, dat) => {
+                    console.log("--------Url-html Block Request a result: ");
                     const linkVal = cardDataManage.getReturnValue('text', dat, "link", "value");
                     if (linkVal) {
                         const linkHtml = document.createElement('span');
@@ -638,6 +677,7 @@ export const elementTemplates = [
             },
             "text": {
                 value: (template, dat) => {
+                    console.log("----------Url-text Block Request a result: ");
                     const linkVal = cardDataManage.getReturnValue('text', dat, "link", "value");
                     return linkVal ? linkVal : null;
                 }
@@ -879,11 +919,16 @@ export const elementTemplates = [
                     const boolCheckSymbol = document.createElement('span');
                     boolCheckSymbol.classList.add('icon', 'material-symbols-outlined', 'inline-value-editor-bool-mark');
                     boolCheckArea.appendChild(boolCheckSymbol);
+                    const boolValueTxt = document.createElement('span');
+                    boolValueTxt.classList.add('editor', 'inline-value-editor-bool-valtext');
+                    boolCheckArea.appendChild(boolValueTxt);
                     boolCheckArea.dataset.isChecked = dat.value;
+                    boolValueTxt.textContent = dat.value.toString().toUpperCase();
                     boolCheckSymbol.textContent = boolCheckArea.dataset.isChecked === 'true' ? 'check' : 'close';
                     boolCheckArea.addEventListener('click', () => {
                         dat.value = !dat.value;
                         boolCheckArea.dataset.isChecked = dat.value;
+                        boolValueTxt.textContent = dat.value.toString().toUpperCase();
                         boolCheckSymbol.textContent = boolCheckArea.dataset.isChecked === 'true' ? 'check' : 'close';
                     });
                     return boolCheckArea;
@@ -931,7 +976,6 @@ export const elementTemplates = [
             "text": {
                 value: (template, dat) => {
                     if (dat.value && Array.isArray(dat.value)) {
-                        console.log('Set get Text Testing: ' + dat.value);
                         return "[" + dat.value.map(v => {
                             const txtVal = cardDataManage.getReturnValue("text", v, "*", "value");
                             return (txtVal !== undefined) ? txtVal : undefined;

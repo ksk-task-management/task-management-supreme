@@ -205,17 +205,28 @@ body {
     background-color: rgba(82, 205, 111, 0.45);
     border: rgb(11, 132, 29) 1px solid;
     border-radius: 5px;
-    padding: 2px;
+    padding: 0px 2px;
     margin-left: 4px;
 }
 
 .input-inline-display-refer {
+    position: relative;
+    font-size: 14px;
     font-weight: 500;
-    background-color: rgba(0, 128, 0, 0.381);
-    border-radius: 5px;
-    padding: 0px 7px;
+    padding: 0px 5px;
     margin-left: 2px;
-    color: rgb(8, 47, 8);
+    color: rgb(13, 97, 13);
+}
+
+.input-inline-display-refer::before {
+    display: inline;
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc(50% - 7px);
+    height: 14px;
+    border: rgba(13, 97, 13, 0.2) 1px solid;
+    margin-right: 2px;
 }
 
 .input-inline-display-refer:empty::after {
@@ -228,14 +239,22 @@ body {
 .inline-value-display-refer-area .icon {
     color: rgb(11, 132, 29) !important;
     text-shadow: var(--shadow-min);
+    /*background-color: rgba(16, 69, 36, 0.15);
+    border-radius: 3px;
+    padding: 0px 2px;*/
 }
 
 /*Value Editor: Boolean element*/
 .inline-value-editor-bool {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    justify-items: center;
+    justify-content: center;
     border-width: 1.5px;
     border-style: solid;
     border-radius: 5px;
-    height: 100%;
     aspect-ratio: 1/1;
     padding: 0px 3px;
     background-color: rgba(139, 139, 139, 0.85);
@@ -258,6 +277,17 @@ body {
 }
 
 .inline-value-editor-bool .icon {
+    color: white !important;
+    text-shadow: var(--shadow-min);
+    padding: 0px 1px;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+}
+
+.inline-value-editor-bool .inline-value-editor-bool-valtext {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0px 2px;
     color: white !important;
     text-shadow: var(--shadow-min);
 }
