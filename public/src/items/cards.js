@@ -856,19 +856,42 @@ export const elementTemplates = [
             }
         }
     },
-    /*{
+    {
         key: ['boolean'],
         icon: () => "rule",
+        value: [
+            {
+                refName: "$",
+                initialValue: () => {
+                    return {
+                        key: "boolean",
+                        value: true
+                    }
+                }    
+            }
+        ],
         return: {
             "boolean": {
                 value: (template, dat) => dat.value,
                 editor: (template, dat) => {
-                    
+                    const boolCheckArea = document.createElement("span");
+                    boolCheckArea.classList.add("editor", "inline-value-editor-bool");
+                    const boolCheckSymbol = document.createElement('span');
+                    boolCheckSymbol.classList.add('icon', 'material-symbols-outlined', 'inline-value-editor-bool-mark');
+                    boolCheckArea.appendChild(boolCheckSymbol);
+                    boolCheckArea.dataset.isChecked = dat.value;
+                    boolCheckSymbol.textContent = boolCheckArea.dataset.isChecked === 'true' ? 'check' : 'close';
+                    boolCheckArea.addEventListener('click', () => {
+                        dat.value = !dat.value;
+                        boolCheckArea.dataset.isChecked = dat.value;
+                        boolCheckSymbol.textContent = boolCheckArea.dataset.isChecked === 'true' ? 'check' : 'close';
+                    });
+                    return boolCheckArea;
                 },
                 represent: ["text"]
             }
         }
-    },*/
+    },
     {
         key: ["set", "collection"],
         icon: () => "data_array",
@@ -908,10 +931,11 @@ export const elementTemplates = [
             "text": {
                 value: (template, dat) => {
                     if (dat.value && Array.isArray(dat.value)) {
+                        console.log('Set get Text Testing: ' + dat.value);
                         return "[" + dat.value.map(v => {
                             const txtVal = cardDataManage.getReturnValue("text", v, "*", "value");
-                            return txtVal ? txtVal : undefined;
-                        }).filter(f => f ).join(", ") + "]";
+                            return (txtVal !== undefined) ? txtVal : undefined;
+                        }).filter(f => cardDataManage.isMatter(f)).join(", ") + "]";
                     }
                     else {
                         return "[]"

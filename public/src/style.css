@@ -230,6 +230,38 @@ body {
     text-shadow: var(--shadow-min);
 }
 
+/*Value Editor: Boolean element*/
+.inline-value-editor-bool {
+    border-width: 1.5px;
+    border-style: solid;
+    border-radius: 5px;
+    height: 100%;
+    aspect-ratio: 1/1;
+    padding: 0px 3px;
+    background-color: rgba(139, 139, 139, 0.85);
+    border-color: rgb(78, 78, 78);
+    box-shadow: var(--shadow-med);
+    margin-left: 1px;
+    margin-right: 1px;
+}
+
+.inline-value-editor-bool[data-is-checked=true] {
+    background-color: rgba(70, 202, 70, 0.85);
+    border-color: green;
+    box-shadow: var(--shadow-med);
+}
+
+.inline-value-editor-bool[data-is-checked=false] {
+    background-color: rgba(250, 39, 131, 0.85);
+    border-color: rgb(148, 3, 68);
+    box-shadow: var(--shadow-min);
+}
+
+.inline-value-editor-bool .icon {
+    color: white !important;
+    text-shadow: var(--shadow-min);
+}
+
 /*Buttons*/
 .btn-normal {
     color: rgb(95, 95, 95);

@@ -294,3 +294,7 @@ export function isBlock(objectDat) {
     }
     return false;
 }
+
+export function isMatter(el) {
+    return el !== undefined;
+} 
