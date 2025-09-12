@@ -562,6 +562,7 @@ export const elementTemplates = [
                     if (imgVal) {
                         const imgHtml = document.createElement('img');
                         imgHtml.src = imgVal;
+                        imgHtml.style.marginTop = '2px';
                         imgHtml.style.borderRadius = '5px';
                         //console.log("Path 1", imgHtml);
                         return imgHtml;
