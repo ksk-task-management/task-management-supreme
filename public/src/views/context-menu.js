@@ -103,8 +103,7 @@ export function createMenu(callerHtml, menuItems, options = null) {
 export function closeMenu() {
     if (!activeMenu) return;
     activeMenu.style.visibility = 'hidden';
-    console.log("%^DSTA^STAUYG Closed Menu", activeMenu.style.visibility);
-    
+    document.getElementById('main-container').appendChild(activeMenu);
 }
 
 export function scrollSelection(amount) {

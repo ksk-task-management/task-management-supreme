@@ -936,6 +936,7 @@ export const elementTemplates = [
             "text": {
                 value: (template, dat) => dat.value,
                 editor:(valueTemplate, valueObject) => {
+                    const textEditorHolder = document.createElement('span');
                     const textEditor = document.createElement('span');
                     textEditor.contentEditable = valueTemplate.isEditable !== false;
                     textEditor.role = 'textbox';
@@ -950,7 +951,8 @@ export const elementTemplates = [
                             ev.target.blur();
                         }
                     });
-                    return textEditor;
+                    textEditorHolder.appendChild(textEditor);
+                    return textEditorHolder;
                 }
             }
         }
