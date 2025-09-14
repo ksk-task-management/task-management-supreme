@@ -22,96 +22,146 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
 
     const isInline = options?.inline === true;
     const isAdditive = options?.additive === true;
+    var inlinePlaceholder = null;
+    if (options) {
+        if (options.innerValueType) {
+            inlinePlaceholder = options.innerValueType.replace('*', "•ᴗ•");
+        }
+        else if (options.placeholder) {
+            inlinePlaceholder = options.placeholder;
+        }
+    }
+    
     const forceDataToBeValue = options?.forceDataToBeValue === true;
+
+    const inputFieldHandlerHtml = document.createElement('span');
+    inputFieldHandlerHtml.classList.add('editor', 'input-field-span-inline-handler');
 
     var newInputField = null;
     if (!isInline) {
-        newInputField = document.createElement('input');
-        newInputField.type = 'text';
-        newInputField.placeholder = `Type some block or command(${inlineCommands.inlineCommandChar})...`;
+        newInputField = document.createElement('span');
+        newInputField.contentEditable = true;
+        newInputField.role = 'textbox';
+        if (inlinePlaceholder)
+            newInputField.setAttribute('data-value-type', inlinePlaceholder);
+        newInputField.addEventListener('click', ev => {
+            ev.target.focus();
+            ev.stopPropagation();
+        });
+       // newInputField = document.createElement('input');
+        //newInputField.type = 'text';
+        //newInputField.placeholder = `Type some block or command(${inlineCommands.inlineCommandChar})...`;
         newInputField.classList.add('editor', 'input-text', 'input-text-seamless', 'block-insert-omit');
     }
     else {
         newInputField = document.createElement('span');
         newInputField.contentEditable = true;
         newInputField.role = 'textbox';
-        newInputField.setAttribute('data-value-type', valueType.replace('*', "•ᴗ•"));
+        if (inlinePlaceholder)
+            newInputField.setAttribute('data-value-type', inlinePlaceholder);
         newInputField.classList.add('editor', 'input-block-value', 'block-insert-omit', 'inline');
         newInputField.addEventListener('click', ev => {
             ev.target.focus();
+            ev.stopPropagation();
         });
+        inputFieldHandlerHtml.classList.add('inline');
     }
+    inputFieldHandlerHtml.appendChild(newInputField);
+    //const placeholderChar = '\u200C';
     newInputField.addEventListener('input', ev => {
         //const env = cardDataManage.getDataEnvironment(data);
         const currentInput = ev.target.value ?? ev.target.textContent;
-        const matchedItems = [];
-        elementTemplates.forEach(et => {
-            if (!et.key || et.key.length <= 0)
-                return;
-            if (!cardDataManage.checkValueReturnSatisfaction(et, valueType)) {
-                return;
-            }
-            et.key.forEach(etk => {
-                var textParts = contextMenu.generateMatchedTextParts(etk.toLowerCase(), currentInput.toLowerCase());
-                if (textParts.length > 0) {
-                    var newMatch = {
-                        icon: et.icon ? et.icon(null) : "token",
-                        textParts: textParts.map(t => {
-                            const result = {text: t.text};
-                            if (t.addMode === true){
-                                result.highlightColor = 'var(--color-selected)';
-                            }
-                            return result;
-                        }),
-                        onClick: () => {
-                            var newValueDat = null;
-                            if (et.return.block) {
-                                //Block
-                                newValueDat = cardDataManage.makeValue(etk, cardDataManage.makeBlock(etk, []));
-                            }
-                            else {
-                                //Value
-                                newValueDat = cardDataManage.makeValue(etk, undefined);
-                            }
-                            cardDataManage.appendData(data, newValueDat, forceDataToBeValue);
+        /*console.log("Trying to input", ev.key);
+        if (ev.target.textContent === '') {
+            ev.target.textContent = "GGGGG";
+        }
+        else if (ev.target.textContent.includes(placeholderChar)) {
+            ev.target.textContent = ev.target.textContent.replace(placeholderChar, "");
+        }*/
 
-                            if (!isAdditive) {
-                                //Destroy old value editors
-                                if (isInline === true) {
-                                    parentHtml.querySelectorAll('.value-object').forEach(el => {
-                                        el.remove();
-                                    });
+        const matchedItems = [];
+
+        if (data && valueType) {
+            elementTemplates.forEach(et => {
+                if (!et.key || et.key.length <= 0)
+                    return;
+                if (!cardDataManage.checkValueReturnSatisfaction(et, valueType)) {
+                    return;
+                }
+                et.key.forEach(etk => {
+                    var textParts = contextMenu.generateMatchedTextParts(etk.toLowerCase(), currentInput.toLowerCase());
+                    if (textParts.length > 0) {
+                        var newMatch = {
+                            icon: et.icon ? et.icon(null) : "token",
+                            textParts: textParts.map(t => {
+                                const result = {text: t.text};
+                                if (t.addMode === true){
+                                    result.highlightColor = 'var(--color-selected)';
+                                }
+                                return result;
+                            }),
+                            onClick: () => {
+                                var newValueDat = null;
+                                if (et.return.block) {
+                                    //Block
+                                    newValueDat = cardDataManage.makeValue(etk, cardDataManage.makeBlock(etk, []));
+                                }
+                                else {
+                                    //Value
+                                    newValueDat = cardDataManage.makeValue(etk, undefined);
+                                }
+                                cardDataManage.appendData(data, newValueDat, forceDataToBeValue);
+
+                                if (!isAdditive) {
+                                    //Destroy old value editors
+                                    if (isInline === true) {
+                                        parentHtml.querySelectorAll('.value-object').forEach(el => {
+                                            el.remove();
+                                        });
+                                    }
+                                }
+                            
+                                const newBlockEditor = createEditor(parentHtml, valueType, data, et, newValueDat);
+
+                                if (!isAdditive) {
+                                    //Handle inline caret behaviour
+                                    checkInlineCaretVisibility(parentHtml);
                                 }
                             }
-                            
-                            const newBlockEditor = createEditor(parentHtml, valueType, data, et, newValueDat);
-
-                            if (!isAdditive) {
-                                //Handle inline caret behaviour
-                                checkInlineCaretVisibility(parentHtml);
-                            }
-                        }
-                    };
-                    const m1 = textParts.filter(p => p.addMode === true).map(p => p.text).join('');
-                    newMatch.score = m1.length;
-                    matchedItems.push(newMatch);
-                }
+                        };
+                        const m1 = textParts.filter(p => p.addMode === true).map(p => p.text).join('');
+                        newMatch.score = m1.length;
+                        matchedItems.push(newMatch);
+                    }
+                });
             });
-        });
-        contextMenu.createMenu(newInputField, matchedItems);
+        }
+
+        if (options && options.customMenuItems) {
+            const customMenuItems = options.customMenuItems(ev);
+            if (Array.isArray(customMenuItems))
+                matchedItems.push(...customMenuItems);
+        }
+
+        contextMenu.createMenu(inputFieldHandlerHtml, matchedItems, {clearCaller: true});
     });
     contextMenu.bindEventDefaultKeys(newInputField);
-    parentHtml.appendChild(newInputField);
+    parentHtml.appendChild(inputFieldHandlerHtml);
 }
 
 export function checkInlineCaretVisibility(parentHtml, exceptionCount = 0) {
     var caret = null;
     Array.from(parentHtml.children).forEach(el => {
-        if (!caret && el.classList.contains("block-insert-omit")){
-            caret = el;
+        var currentEl = el;
+        if (!caret && currentEl.classList.contains("input-field-span-inline-handler")) {
+            caret = currentEl;
         }
+
+        /*if (!caret && currentEl.classList.contains("block-insert-omit")){
+            caret = currentEl;
+        }*/
     })
-    if (!caret || caret.tagName !== 'SPAN')
+    if (!caret || !caret.classList.contains('inline'))
         return;
     const children = parentHtml.querySelectorAll('.value-object');
     const childrenCount = children.length - exceptionCount;
@@ -183,15 +233,16 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
         //Value Editor (Customized within the template)
     }*/
     if (newEditor) {
-        console.log("T2 Inserting the new editor: ", newEditor, "Into", parentHtml, parentHtml.children.length);
-        const inputCaret = Array.from(parentHtml.children).find(child => child.classList.contains('block-insert-omit'));
+       // console.log("T2 Inserting the new editor: ", newEditor, "Into", parentHtml, parentHtml.children.length);
+       insertEditorAgainstCaret(parentHtml, newEditor);
+        /*const inputCaret = Array.from(parentHtml.children).find(child => child.classList.contains('block-insert-omit'));
         if (inputCaret && parentHtml.contains(inputCaret)) {
-            console.log("T2.1 Inserting before the caret: ", inputCaret);
+            //console.log("T2.1 Inserting before the caret: ", inputCaret);
             parentHtml.insertBefore(newEditor, inputCaret);
         }
         else {
             parentHtml.appendChild(newEditor);
-        }
+        }*/
 
         newEditor.classList.add('value-object');
         newEditor.addEventListener('click', ev => {
@@ -220,19 +271,29 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                         }
                     }
                 ];
-                const menu = contextMenu.createMenu(newEditor, menuItems, false);
+                const menu = contextMenu.createMenu(newEditor, menuItems);
                 //contextMenu.adjustCustomPosition(ev.clientX, ev.clientY, 0, 0);
                 const callerBound = newEditor.getBoundingClientRect();
                 const menuBound = menu.getBoundingClientRect();
                 const newLeft = Math.max(callerBound.left, Math.min(ev.clientX, callerBound.left + callerBound.width - menuBound.width));
                 const newTop = callerBound.top;
-                contextMenu.adjustCustomPosition(newLeft, newTop, callerBound.width, callerBound.height);
+                contextMenu.adjustCustomPosition(newEditor, newLeft, newTop, callerBound.width, callerBound.height);
             }
             else contextMenu.closeMenu();
         });
     }
     
     return newEditor;
+}
+
+function insertEditorAgainstCaret(parentHtml, newEditor) {
+    const inputCaret = Array.from(parentHtml.children).find(child => child.classList.contains('input-field-span-inline-handler'));
+    if (inputCaret && parentHtml.contains(inputCaret)) {
+        parentHtml.insertBefore(newEditor, inputCaret);
+    }
+    else {
+        parentHtml.appendChild(newEditor);
+    }
 }
 
 export function createBlockEditor(parentHtml, block) {
@@ -252,7 +313,8 @@ export function createBlockEditor(parentHtml, block) {
     blockIcon.textContent = blockTemplate.icon ? blockTemplate.icon() : "token";
     blockKeyArea.appendChild(blockIcon);
     const blockKeyTitle = document.createElement('span');
-    blockKeyTitle.textContent = block.key;
+    console.log("[B] ", block.key, typeof block.key);
+    blockKeyTitle.textContent = block.key[0].toUpperCase() + block.key.substring(1);
     blockKeyArea.appendChild(blockKeyTitle);
     newBlockEditor.appendChild(blockKeyArea);
     //Values
@@ -268,7 +330,51 @@ export function createBlockEditor(parentHtml, block) {
     });
 
     //Value Input
-    const valueInputField = document.createElement('span');
+    const valueInputField = createInputCarret(valueArea, null, null, {
+        inline: true,
+        placeholder: "+",
+        customMenuItems: ev => {
+            const result = [];
+            const allInputtableValues = blockTemplate.value?.map(v => {
+                return {
+                    valueTemplate: v,
+                    searchKey: v.refName.toLowerCase().replaceAll("_", " ")
+                }
+            });
+            for (let bv of block.value) {
+                const comparingName = bv.refName.toLowerCase().replaceAll("_", " ");
+                const existIndex = allInputtableValues.findIndex(v => v.searchKey === comparingName);
+                if (existIndex >= 0) {
+                    allInputtableValues.splice(existIndex, 1);
+                }
+            }
+            allInputtableValues.forEach(v => {
+                const textParts = contextMenu.generateMatchedTextParts(v.searchKey, ev.target.textContent.toLowerCase());
+                if (textParts.length > 0) {
+                    const newMatch = {
+                        textParts: textParts.map(t => {
+                            return {
+                                text: t.text,
+                                highlightColor: t.addMode === true ? "red" : null
+                            } 
+                        }),
+                        icon: "label",
+                        onClick: () => {
+                            const newBlockValue = cardDataManage.makeBlockValueFromTemplate(v.valueTemplate);
+                            if (newBlockValue) {
+                                block.value.push(newBlockValue);
+                                createValueEditor(valueArea, v.valueTemplate, newBlockValue);
+                            }
+                        }
+                    };
+                    const m1 = textParts.filter(p => p.addMode === true).map(p => p.text).join('');
+                    newMatch.score = m1.length;
+                    result.push(newMatch);
+                }
+            });
+            return result;
+        }
+    }); /*document.createElement('span');
     valueInputField.contentEditable = true;
     valueInputField.role = 'textbox';
     valueInputField.classList.add('editor', 'input-block-value');
@@ -305,7 +411,7 @@ export function createBlockEditor(parentHtml, block) {
         ev.target.focus();
     });
     contextMenu.bindEventDefaultKeys(valueInputField);
-    valueArea.appendChild(valueInputField);
+    valueArea.appendChild(valueInputField);*/
     return newBlockEditor;
 }
 
@@ -335,8 +441,9 @@ export function createValueEditor(parentHtml, valueTemplate, valueDat) {
         const valueValueEditor = createEditor(newValueEditor, valueTemplate.type, valueDat, valElementTemplate, valueDat.value);
     }
     //Value > Caret to select inner values
-    const innerCaret = createInputCarret(newValueEditor, valueDat, valueTemplate.type, {inline: true});
+    const innerCaret = createInputCarret(newValueEditor, valueDat, valueTemplate.type, {inline: true, innerValueType: valueTemplate.type});
     checkInlineCaretVisibility(newValueEditor);
 
-    parentHtml.appendChild(newValueEditor);
+    //Appending Logic
+    insertEditorAgainstCaret(parentHtml, newValueEditor);
 }

@@ -219,6 +219,64 @@ export const elementTemplates = [
         isAllowedUB: false
     },
     {
+        key: ["parent"],
+        icon: () => "subdirectory_arrow_right",
+        value: [
+            {
+                name: "Parents",
+                refName: "parents",
+                type: "set-text|text"
+            }
+        ],
+        return: {
+            "html": {
+                
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
+        key: ["subcards"],
+        icon: () => "playing_cards",
+        value: [
+            {
+                name: "Is Visible Outside",
+                refName: "is_visible_outside",
+                type: "boolean",
+                isOmittable: true
+            },
+            {
+                name: "Inheritance",
+                refName: "inheritance",
+                type: "set-*",
+                isOmittable: true
+            }
+            //Moved under the "Style" block that falls under the inheritance value
+            /*{
+                name: "Title Prefix",
+                refName: "title_prefix",
+                type: "text",
+                isOmitable: true
+            },
+            {
+                name: "Title Suffix",
+                refName: "title_suffix",
+                type: "text",
+                isOmitable: true
+            }*/
+        ],
+        return: {
+            "html": {
+
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
         key: ["title"],
         icon: () => "title",
         value: [
@@ -969,7 +1027,8 @@ export const elementTemplates = [
                     const setValueInput = cardEditor.createInputCarret(setFieldHtml, dat.value, acceptedValueType, {
                         inline: true, 
                         additive: true,
-                        forceDataToBeValue: true
+                        forceDataToBeValue: true,
+                        innerValueType: acceptedValueType
                     });
                     return setFieldHtml;
                 }

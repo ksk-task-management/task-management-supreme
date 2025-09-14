@@ -9,8 +9,14 @@ export function makeBlock(domain, values, editDate = null) {
 
     const pracValues = values;
     blockTemplate.value?.forEach(val => {
-        if (!val.isOmittable && !pracValues.some(pv => pv.refName === val.refName)) {
-            pracValues.push({refName: val.refName, value: val.initialValue ? val.initialValue() : undefined});
+        if (val.isOmittable)
+            return;
+
+        if (!pracValues.some(pv => pv.refName === val.refName)) {
+            const newBlockValue = makeBlockValueFromTemplate(val);
+            if (newBlockValue) {
+                pracValues.push(newBlockValue);
+            }
         }
     });
 
@@ -21,6 +27,15 @@ export function makeBlock(domain, values, editDate = null) {
         lastEdit: editDate ? editDate : new Date()
     }
     return newBlock;
+}
+
+export function makeBlockValueFromTemplate(valueTemplate) {
+    if (!valueTemplate)
+        return null;
+    return {
+        refName: valueTemplate.refName,
+        value: valueTemplate.initialValue ? valueTemplate.initialValue() : undefined
+    }
 }
 
 export function makeValue(valueKey, value) {
@@ -142,12 +157,23 @@ export function checkValueReturnSatisfaction(elementTemplate, valueType) {
     return satisfactions.length > 0 ? satisfactions : null;
 }
 
-export function processValueType(valueType) {
-    var val =valueType;
-    if (valueType.includes('-')) {
-        val = valueType.split('-')[0].trim();
+export function processValueType(valueType, getInsideType = false) {
+    var val = valueType;
+    if (val.includes('|')){
+        val = val.split('|').map(s => s.trim());
     }
-    return val.split('|').map(s => s.trim());
+    else {
+        val = [val];
+    }
+    while (val.some(v => v.includes('-'))) {
+        const thatIdx = val.findIndex(v => v.includes('-'));
+        var newValues = val[thatIdx].split('-');
+        if (!getInsideType) {
+            newValues = [newValues[0]];
+        }
+        val.splice(thatIdx, 1, ...newValues);
+    }
+    return val;
 }
 
 export function getDataUID(cardDataArray) {
@@ -215,10 +241,11 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
                         candidateUDVal = candidateUDVal.find(bv => {
                             //console.log("Y1-0.1E - Examining a child", bv, "with the refName of", valueChannelRefName);
                             return valueChannelRefName === "*" || (bv.refName && bv.refName === valueChannelRefName && bv.value);
-                        }).value;
+                        })?.value;
                     }
-                    if (candidateUDVal && candidateUDVal.key) {
-                        //console.log("Y1-0.2", candidateUDVal);
+                    if (candidateUDVal) {
+                        if (candidateUDVal.key) {
+                            //console.log("Y1-0.2", candidateUDVal);
                         const cUDValTemplate = elementTemplates.find(et => et.key.includes(candidateUDVal.key));
                         if (cUDValTemplate) {
                             //console.log("Y1-0.3");
@@ -231,8 +258,12 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
                                 continue;
                             }
                         }
+                        }
+                        
                     }
-
+                    else {
+                        pracVal = null;
+                    }
                 }
 
                 objectTemplate = elTemplate;
@@ -286,9 +317,17 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
         if (selectedSat[valueMode].goto) {
             return getReturnValue(selectedSat[valueMode].goto, objectDat, valueChannelRefName, valueMode);
         }
-        const result = selectedSat[valueMode](objectTemplate, pracVal, options);
+
+        var result = null;
+        try {
+            result = selectedSat[valueMode](objectTemplate, pracVal, options);
+            return result;
+        }
+        catch (error) {
+            console.error("Got error during the rendering result", error);
+        }
         //console.log("Y2.5 This is the return result: ", result, " of the request of: ", valueType, valueChannelRefName, valueMode, "Requested from: ", objectDat, pracVal);
-        return result;
+        //return result;
     }
 
     return null;

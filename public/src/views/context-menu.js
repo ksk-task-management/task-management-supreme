@@ -4,10 +4,13 @@ export var activeMenu = null;
 /**
  * @param {This is the array of the object consist of icon, text} menuItems 
 */
-export function createMenu(callerHtml, menuItems, clearCaller = true) {
+export function createMenu(callerHtml, menuItems, options = null) {
+    const clearCaller = options?.clearCaller ?? false;
+
     if (!activeMenu) {
         activeMenu = document.createElement('div');
-        activeMenu.classList.add('editor', 'context-menu');
+        activeMenu.classList.add('editor', 'context-menu', 'glassmorphism');
+        activeMenu.contentEditable = false;
         document.addEventListener('click', ev => {
             if (activeMenu && !activeMenu.contains(ev.target) && activeMenu.style.visibility === 'visible') {
                 activeMenu.style.visibility = 'hidden';
@@ -20,7 +23,6 @@ export function createMenu(callerHtml, menuItems, clearCaller = true) {
         });*/
     }
     
-    document.getElementById('main-container').appendChild(activeMenu);
     if (!menuItems || menuItems.length <= 0) {
         activeMenu.style.visibility = 'hidden';
     }
@@ -74,17 +76,19 @@ export function createMenu(callerHtml, menuItems, clearCaller = true) {
             }
 
             if (item.onClick) {
-                newItem.addEventListener('click', () => {
+                newItem.addEventListener('click', ev => {
                     item.onClick();
-                    closeMenu();
                     if (clearCaller && callerHtml) {
-                        if (callerHtml.tagName === 'INPUT') {
-                            callerHtml.value = '';
+                        var editableContent = callerHtml;
+                        while (editableContent.contentEditable !== true && editableContent.children.length > 0) {
+                            editableContent = editableContent.children[0];
                         }
-                        else {
-                            callerHtml.textContent = '';
+                        if (editableContent.contentEditable) {
+                            editableContent.textContent = '';
                         }
                     }
+                    closeMenu();
+                    ev.stopPropagation();
                 });
             }
 
@@ -99,6 +103,8 @@ export function createMenu(callerHtml, menuItems, clearCaller = true) {
 export function closeMenu() {
     if (!activeMenu) return;
     activeMenu.style.visibility = 'hidden';
+    console.log("%^DSTA^STAUYG Closed Menu", activeMenu.style.visibility);
+    
 }
 
 export function scrollSelection(amount) {
@@ -126,27 +132,42 @@ export function getSelectedItemHtml() {
 }
 
 export function adjustMenuPosition(parentHtml) {
-    if (activeMenu) {
+    parentHtml.appendChild(activeMenu);
+
+    /*if (activeMenu) {
         const parentBound = parentHtml.getBoundingClientRect();
-        activeMenu.style.left = parentBound.left + 'px';
+        const menuBound = activeMenu.getBoundingClientRect();
+        parentHtml.appendChild(activeMenu);
+        activeMenu.style.left = `${parentHtml.offsetLeft}px`;
+        activeMenu.style.top = `-${menuBound.height}px`;
+        /*activeMenu.style.left = parentBound.left + 'px';
         activeMenu.style.top = (parentBound.top + parentBound.height) + 'px';
         const elementBound = activeMenu.getBoundingClientRect();
         if (isPartiallyInViewport(elementBound)) {
             activeMenu.style.top = (parentBound.top - elementBound.height) + 'px';
-        }
-    }
+        }/
+    }*/
 }
 
-export function adjustCustomPosition(left, top, width, height) {
-    if (activeMenu) {
-        console.log("Custom Adjusting: ", left, top, width, height);
+export function adjustCustomPosition(parentHtml, left, top, width, height) {
+    parentHtml.appendChild(activeMenu);
+    //const parentBound = parentHtml.getBoundingClientRect();
+   // activeMenu.style.left = `${left - parentBound.left}px`
+
+    /*if (activeMenu) {
+        const parentBound = parentHtml.getBoundingClientRect();
+        const menuBound = activeMenu.getBoundingClientRect();
+        parentHtml.appendChild(activeMenu);
+        activeMenu.style.left = `${left-parentBound.left}px`;
+        activeMenu.style.top = `-${menuBound.height}px`;
+        /*console.log("Custom Adjusting: ", left, top, width, height);
         activeMenu.style.left = left + 'px';
         activeMenu.style.top = (top + height) + 'px';
         const elementBound = activeMenu.getBoundingClientRect();
         if (isPartiallyInViewport(elementBound)) {
             activeMenu.style.top = (top - elementBound.height) + 'px';
-        }
-    }
+        }*
+    }*/
 }
 
 export function generateMatchedTextParts(original, comparator) {

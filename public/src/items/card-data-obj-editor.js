@@ -37,6 +37,7 @@ export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffix
                     if (type.prefixIcon && prefixEnumIcon) {
                         prefixEnumIcon.textContent = type.prefixIcon;
                     }
+                    enumTxtInputCaret.blur();
                 }
             }
             if (type.icon) {
@@ -46,7 +47,7 @@ export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffix
             menuItem.score = m1.length;
             return menuItem;
         });
-        contextMenu.createMenu(enumTxtInputCaret, menuItems, false);
+        contextMenu.createMenu(enumTxtInputCaret, menuItems);
     }
     enumTxtInputCaret.addEventListener('input', ev => {
         dat.value = ev.target.textContent;
@@ -57,12 +58,12 @@ export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffix
         editingEvent(ev);
     });
     contextMenu.bindEventDefaultKeys(enumTxtInputCaret);
-    enumTxtInputCaret.addEventListener('keydown', ev => {
+    /*enumTxtInputCaret.addEventListener('keydown', ev => {
         if (ev.key === 'Enter') {
             ev.preventDefault();
             ev.target.blur();
         }
-    });
+    });*/
     enumCardTypeArea.appendChild(enumTxtInputCaret);
     //Enum Selector Icon
     if (suffixIcon) {

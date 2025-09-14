@@ -18,6 +18,14 @@ body {
     user-select: none;
 }
 
+/*Universal styling*/
+.glassmorphism {
+    border: 1.5px solid rgb(200, 200, 200);
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
 .main-container {
     position: fixed;
     top: 0;
@@ -93,6 +101,8 @@ body {
 }
 
 .input-text-seamless {
+    display: block !important;
+    position: relative !important;
     outline: none !important;
     border: none !important;
     box-shadow: none !important;
@@ -260,7 +270,7 @@ body {
     background-color: rgba(139, 139, 139, 0.85);
     border-color: rgb(78, 78, 78);
     box-shadow: var(--shadow-med);
-    margin-left: 1px;
+    margin-left: 4px;
     margin-right: 1px;
 }
 
@@ -775,17 +785,20 @@ body {
 
 /*Editors: Contextual Menu*/
 .editor.context-menu {
-    position: absolute;
+    position: absolute !important;
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
     width: fit-content;
     height: fit-content;
     padding: 7px;
-    background-color: white;
-    border: #8e8e8e solid 1px;
+    /*background-color: white;
+    border: #8e8e8e solid 1px;*/
     box-shadow: var(--shadow-min);
     border-radius: 12px;
+    left: 0px;
+    bottom: calc(100% + 4px);
+    z-index: 999;
 }
 
 .editor.btn-context-menu-item {
@@ -800,7 +813,8 @@ body {
 .btn-context-menu-item span {
     font-size: var(--primary-font-size);
     font-weight: 600;
-    color: gray;
+    color: rgb(67, 65, 65);
+    white-space: nowrap;
 }
 
 .btn-context-menu-item .area-horizontal {
@@ -808,7 +822,10 @@ body {
 }
 
 .editor.btn-context-menu-item.selected {
-    background-color: rgb(228, 230, 255) !important;
+    border: 1.5px solid #6f03fc5e;
+    background: rgba(142, 100, 255, 0.2) !important;
+    backdrop-filter: blur(2.5px);
+    -webkit-backdrop-filter: blur(2.5px);
     padding: 2px 6px;
     border-radius: 5px;
 }
@@ -828,6 +845,10 @@ body {
 }
 
 /*Editors: Block Editor*/
+.editor {
+    position: relative;
+}
+
 .editor.block-editor {
     display: flex;
     flex-direction: column;
@@ -876,6 +897,8 @@ body {
     border: #b8b8b879 1px solid;
     border-radius: 5px;
     padding: 5px;
+    margin-left: 2px;
+    margin-top: 2px;
 
 }
 
@@ -897,16 +920,6 @@ body {
     font-size: 12px;
 }
 
-/*
-.editor.value-editor > div {
-    position: relative;
-}
-
-.editor.value-editor .icon {
-    position: absolute;
-    left: 0;
-    top: 0;
-}*/
 .editor.value-editor .icon {
     font-size: 14px !important;
 }
@@ -958,9 +971,7 @@ body {
 
 .editor.input-block-value {
     display: inline;
-    position: relative;
     width: fit-content;
-    position: relative;
     min-width: 20px !important;
     max-width: 100%;
     padding: 1px 5px;
@@ -985,10 +996,15 @@ body {
     pointer-events: none !important;
 }
 
+.editor.block-insert-omit:focus::after {
+    content: "𓂃₊⊹🪶";
+    color: rgb(180, 180, 180);
+    display: inline-block;
+}
+
 /*Value with inline blocks*/
 .editor.value-editor:has(.editor.block-editor) {
     display: block;
-    position: relative;
     border: none;
     border-radius: 0;
     margin-top: -10px;

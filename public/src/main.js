@@ -6,7 +6,8 @@ import { getModalCardCreation } from "./items/cards";
 import { getModalSheetSetting } from "./views/modals";
 import { displayPage, toggleNotification } from "./views/pages";
 import { makeAction_ButtonSwitch } from "./views/view-actions";
-import * as pgMasonry from "./views/pages/page-masonry"
+import * as pgMasonry from "./views/pages/page-masonry";
+import * as contextMenu from "./views/context-menu";
 
 export const userData = {
     uid: null,
@@ -22,6 +23,13 @@ window.onresize = () => {
     //toggleNotification('success', "Test");
     pgMasonry.onMasonryResized();
 };
+
+document.addEventListener('click', ev => {
+    //Check contextmenu outside-click to close
+    if (contextMenu.activeMenu && !contextMenu.activeMenu.contains(ev.target)){
+        contextMenu.closeMenu();
+    }
+});
 
 
 function onAppLoad(){
