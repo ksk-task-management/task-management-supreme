@@ -36,7 +36,7 @@
 
     <div id="main-container" class="main-container">
         <!--Page: Login-->
-        <div id="page-login" class="panel area-fit area-padding20">
+        <div id="page-login" class="page panel area-fit area-padding20">
             <div id="txt-login-username" class="txt-header hidden">Username</div>
             <input type="text" id="input-login-username" placeholder="Enter your username" class="input-username input-text hidden">
             <div id="txt-login-email" class="txt-header">E-mail</div>
@@ -60,7 +60,7 @@
         </div>
 
         <!--Register Page-->
-        <div id="page-register" class="page-register panel area-padding20 area-fit-lim-handheld-90 hidden">
+        <div id="page-register" class="page page-register panel area-padding20 area-fit-lim-handheld-90 hidden">
             <div class="area-horizontal area-fit">
                 <div class="area-vertical">
                     <div id="txt-register-name" class="txt-header" locale="name">Name</div>
@@ -103,8 +103,21 @@
         </div>
 
         <!--Masonry-List Cards Page-->
-        <div id="page-cards-masonrylist" class="page-masonry page-full area-padding20 hidden">
-            <button id="btn-masonrylist-add-card" class="btn-create-card btn-normal btn-gray area-fit-horizontal">Add Card</button>
+        <div id="page-cards-masonrylist" class="page page-masonry page-full area-padding20 hidden">
+            <div class="masonry-toolbar-header">
+                <div class="area-horizontal area-fit-horizontal area-fill-vertical">
+                    <button id="btn-masonry-inside-back" class="btn-login btn-square btn-normal area-horizontal area-center area-fill-vertical area-fit-horizontal">
+                        <span class="material-symbols-outlined icon">chevron_backward</span>
+                    </button>
+                    <button id="btn-masonrylist-add-card" class="btn-create-card btn-normal btn-gray area-fit-horizontal">Add Card</button>
+                </div>
+                <div class="area-horizontal area-fit-horizontal area-fill-vertical">
+                    <button id="btn-masonry-inside-edit" class="btn-login btn-square btn-normal area-horizontal area-center area-fill-vertical area-fit-horizontal">
+                        <span class="material-symbols-outlined icon">note_alt</span>
+                    </button>
+                </div>
+            </div>
+            
             <div id="masonrylist-container" class="masonrylist-container"></div>
         </div>
 

@@ -1,6 +1,6 @@
 import { appendEvent } from "../events/events";
 import { userData } from "../main";
-import { renderAnyOpeningPages, toggleNotification } from "../views/pages";
+import { forceRenderOpeningPage, toggleNotification } from "../views/pages";
 import { postCloudData } from "./google-sheets";
 import * as cardDataManage from "../items/card-data-manage";
 
@@ -32,7 +32,7 @@ export function loadCloudCardData() {
     appendEvent("Retieving user's cards", async () => {
         const result = await postCloudData(`loadCards`, {sheetID: userData.sheetID});
         localCardData = result.data.filter(card => card.uid !== '').map(card => JSON.parse(card.data));
-        renderAnyOpeningPages();
+        forceRenderOpeningPage();
     }, "mitre");
 }
 

@@ -271,8 +271,8 @@ btnRegisterCreateAccount.addEventListener('click', async () => {
 });
 
 //Masonry Card List - Create Card (Apply universally to all the create-card buttons)
-btnsCreateCard.forEach(button => {
+/*btnsCreateCard.forEach(button => {
     button.addEventListener('click', () => {
         getModalCardCreation();
     });
-});
+});*/

@@ -1,35 +1,89 @@
 import { areaNotify, iconNotify, pageLogin, pageRegister, pageCardsMasonryList, textNotifyContent, areaEventLoading, txtEventLoading, iconEventLoading, txtEventLoadingEventRemaining } from "../config/dom-elements";
 import { remainingEventCount } from "../events/events";
+import { generateShortId } from "../utils/helpers";
 import * as pgMasonry from "./pages/page-masonry";
 
 let timeoutFunction = null;
+const activePagesHistory = [];
 
-export function displayPage(page) {
-    if (page === 'inside-space'){
+export function displayPage(pageUniqueClass, options = null) {
+    if (pageUniqueClass === 'inside-space'){
         //FETCH TO USER's LAST SETTING PAGE....
-        displayPage('cards_masonry_list');
+        displayPage('masonry-list', options);
         return;
     }
 
-    pageLogin.classList.add('hidden');
-    pageRegister.classList.add('hidden');
-    pageCardsMasonryList.classList.add('hidden');
+    console.log("Page being requested", pageUniqueClass);
 
-    if (page === 'login') {
+    const newPageObject = {
+        pageID: generateShortId(),
+        page: pageUniqueClass,
+        options: options
+    };
+    if (pageUniqueClass === 'login') {
+        newPageObject.pageHtml = pageLogin;
+    }
+    else if (pageUniqueClass === 'register') {
+        newPageObject.pageHtml = pageRegister;
+    }
+    else if (pageUniqueClass === 'masonry-list') {
+        newPageObject.pageHtml = pageCardsMasonryList;
+        newPageObject.onRender = pgMasonry.render;
+    }
+    activePagesHistory.push(newPageObject);
+    forceRenderOpeningPage();
+
+    /*pageLogin.classList.add('hidden');
+    pageRegister.classList.add('hidden');
+    pageCardsMasonryList.classList.add('hidden');*/
+
+    /*if (pageUniqueClass === 'login') {
+        newPageObject.pageHtml = pageLogin;
         pageLogin.classList.remove('hidden');
     }
-    else if (page === 'register') {
+    else if (pageUniqueClass === 'register') {
         pageRegister.classList.remove('hidden');
     }
-    else if (page === 'cards_masonry_list'){
+    else if (pageUniqueClass === 'masonry-list'){
         pageCardsMasonryList.classList.remove('hidden');
-    }
+    }*/
 }
 
-export function renderAnyOpeningPages() {
-    if (!pageCardsMasonryList.classList.contains('hidden')) {
-        pgMasonry.render();
+export function getLastPage() {
+    if (activePagesHistory.length > 0) {
+        return activePagesHistory[activePagesHistory.length - 1];
     }
+    return null;
+}
+
+//export function getLatest
+
+export function forceRenderOpeningPage() {
+    const openingPage = getLastPage();
+    if (openingPage) {
+        document.querySelectorAll(".page").forEach(p => {
+            p.classList.add('hidden');
+        });
+        if (openingPage.pageHtml) {
+            openingPage.pageHtml.classList.remove('hidden');
+        }
+        if (openingPage.onRender) {
+            openingPage.onRender(openingPage.options);
+        }
+
+        console.log("Rendering page: ", openingPage);
+    }
+    /*if (!pageCardsMasonryList.classList.contains('hidden')) {
+        pgMasonry.render();
+    }*/
+}
+
+export function gotoPreviousPage() {
+    if (activePagesHistory.length <= 1) {
+        return;
+    }
+    activePagesHistory.pop();
+    forceRenderOpeningPage();
 }
 
 export function toggleNotification(type, message, customIcon = null, accentColor = null, backdropColor = null){

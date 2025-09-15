@@ -8,7 +8,7 @@ import * as contextMenu from "../views/context-menu";
 import { userData } from "../main";
 import { appendEvent } from "../events/events";
 import { postCloudData } from "../databases/google-sheets";
-import { renderAnyOpeningPages } from "../views/pages";
+import { forceRenderOpeningPage } from "../views/pages";
 
 export const majorCardTypes = [
     {
@@ -223,8 +223,8 @@ export const elementTemplates = [
         icon: () => "subdirectory_arrow_right",
         value: [
             {
-                name: "Parents",
-                refName: "parents",
+                name: "Parent",
+                refName: "parent",
                 type: "set-text|text"
             }
         ],
@@ -242,9 +242,9 @@ export const elementTemplates = [
         icon: () => "playing_cards",
         value: [
             {
-                name: "Is Visible Outside",
-                refName: "is_visible_outside",
-                type: "boolean",
+                name: "Visible Outside",
+                refName: "visible_outside",
+                type: "boolean|text",
                 isOmittable: true
             },
             {
@@ -460,8 +460,6 @@ export const elementTemplates = [
                     arrayContainerHtml.style.height = 'fit-content';
                     const initialValue = cardDataManage.getReturnValue("set-*", dat, "items", "value");
                     const setValue = [initialValue];
-                    //Populate (flatten the array results)
-                    //console.log("$$$$$$$ Set Value: ", setValue);
                     while (setValue.some(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)))) {
                         const idxNestedArray = setValue.findIndex(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)));
                         const nestedValue = Array.isArray(setValue[idxNestedArray]) ? setValue[idxNestedArray] : [setValue[idxNestedArray]];
@@ -469,7 +467,6 @@ export const elementTemplates = [
                         nestedValue.forEach(nv => {
                             if (!cardDataManage.isMatter(nv))
                                 return;
-                            //console.log("&&&&&&& Begin Examine spliced portion", nv);
                             const r = cardDataManage.getReturnValue("*", nv, "*", "value");
                             if (!cardDataManage.isMatter(r))
                                 return;
@@ -480,7 +477,6 @@ export const elementTemplates = [
                                 tempResult.push(r);
                         });
                         setValue.splice(idxNestedArray, 1, ...tempResult);
-                        //console.log("Spliced some nested array:", idxNestedArray, setValue, "--->", nestedValue, tempResult);
                     }
 
                     setValue?.forEach(valValue => {
@@ -500,7 +496,6 @@ export const elementTemplates = [
                         arrayContainerHtml.appendChild(valContainer);
 
                         if (valValue instanceof Node) {
-                            console.log("Happened!!", valValue);
                             valContainer.appendChild(valValue);
                         }
                         else {
@@ -516,7 +511,25 @@ export const elementTemplates = [
             },
             "set": {
                 value: (template, dat) => {
-                    return cardDataManage.getReturnValue("set-*", dat, "items", "value");
+                    const value = cardDataManage.getReturnValue("*", dat, "items", "value");
+                    if (!Array.isArray(value)) {
+                        value = [value];
+                    }
+                    //console.log('Array getting set value', value);
+                    return value;
+                }
+            },
+            "text": {
+                value: (template, dat) => {
+                    if (dat.value && Array.isArray(dat.value)) {
+                        return "[" + dat.value.map(v => {
+                            const txtVal = cardDataManage.getReturnValue("text", v, "*", "value");
+                            return (txtVal !== undefined) ? txtVal : undefined;
+                        }).filter(f => cardDataManage.isMatter(f)).join(", ") + "]";
+                    }
+                    else {
+                        return "[]"
+                    }
                 }
             }
         }
@@ -535,7 +548,6 @@ export const elementTemplates = [
             "html": {
                 value: (template, dat) => {
                     var setValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
-                    console.log("Numbered list - ", dat, "is getting HTML result", setValue);
                     const valueEntryArray = [];
                     if (setValue && !(setValue instanceof Node)) {
                         if (Array.isArray(setValue)) {
@@ -574,12 +586,8 @@ export const elementTemplates = [
                         });
                     }
 
-                    console.log(candidateParents);
-
-                    //console.log("Value for numbered list:", valueEntryArray);
                     if (valueEntryArray.length > 0){
                         valueEntryArray.forEach((ve, idx) => {
-                            //console.log(ve, "Has been prepended.");
                             const numBadge = document.createElement('span');
                             numBadge.classList.add('num-badge');
                             numBadge.style.backgroundColor = '#787a7d';
@@ -614,18 +622,14 @@ export const elementTemplates = [
         return: {
             "html":{
                 value: (template, dat) => {
-                    //console.log("---------------Image Block Request a result: ");
                     const imgVal = cardDataManage.getReturnValue('text|url|imagebase', dat, "source", "value");
-                    //console.log("^^^^^^^^^Image get result: ", imgVal);
                     if (imgVal) {
                         const imgHtml = document.createElement('img');
                         imgHtml.src = imgVal;
                         imgHtml.style.marginTop = '2px';
                         imgHtml.style.borderRadius = '5px';
-                        //console.log("Path 1", imgHtml);
                         return imgHtml;
                     }
-                    //console.log("Path 2");
                     return null;
                 }
             },
@@ -694,7 +698,6 @@ export const elementTemplates = [
         return: {
             "html": {
                 value: (template, dat) => {
-                    console.log("--------Url-html Block Request a result: ");
                     const linkVal = cardDataManage.getReturnValue('text', dat, "link", "value");
                     if (linkVal) {
                         const linkHtml = document.createElement('span');
@@ -736,7 +739,6 @@ export const elementTemplates = [
             },
             "text": {
                 value: (template, dat) => {
-                    console.log("----------Url-text Block Request a result: ");
                     const linkVal = cardDataManage.getReturnValue('text', dat, "link", "value");
                     return linkVal ? linkVal : null;
                 }
@@ -813,7 +815,6 @@ export const elementTemplates = [
         return: {
             "html": {
                 value: (template, dat) => {
-                    //console.log("S@", dat);
                     const statusHtmlArea = document.createElement('div');
                     statusHtmlArea.style.position = 'relative';
                     statusHtmlArea.style.display = 'flex';
@@ -869,7 +870,7 @@ export const elementTemplates = [
                                             const parentCard = cardDataManage.getCardContainingData(exactValueToEdit);
                                             if (parentCard)
                                                 localData.uploadCard(parentCard);
-                                            renderAnyOpeningPages();
+                                            forceRenderOpeningPage();
                                         }
                                     });
                                     const elQBIcon = document.createElement('span');
@@ -1117,10 +1118,10 @@ export function getModalCardCreation(cardDataArray = null) {
     modal.classList.add("modal-card-creation");
     modal.style.maxWidth = '80%';
     modal.querySelector(".btn-modal-close").addEventListener('click', () => {
-        console.log("Saving a card: ", JSON.stringify(cardDataArray), userData.sheetID);
+        //console.log("Saving a card: ", JSON.stringify(cardDataArray), userData.sheetID);
         localData.appendLocalCard(cardDataArray);
         localData.uploadCard(cardDataArray);
-        renderAnyOpeningPages();
+        forceRenderOpeningPage();
     });
 
     if (!cardDataArray) cardDataArray = [];

@@ -1,11 +1,13 @@
 import * as localData from "../../databases/local-data";
 import * as cardDataManage from "../../items/card-data-manage";
-import { defaultCardStatus, getModalCardCreation } from "../../items/cards";
+import * as cardDisplay from "../../views/renders/card-displayers";
+import * as pages from "../pages";
+import { defaultCardStatus, elementTemplates, getModalCardCreation } from "../../items/cards";
 
 export const masonryContainer = document.getElementById('masonrylist-container');
 const gapSize = 5;
 let timeToRerenderFunction = null;
-export function render() {
+export function render(options = null) {
     if (!masonryContainer)
         return;
     masonryContainer.innerHTML = '';
@@ -14,43 +16,62 @@ export function render() {
     for (var i = 0; i < columnCount; i++) {
         createColumn(columnWidth);
     }
-    renderCards();
+    renderCards(options);
+
+    const masonryBackButton = document.getElementById('btn-masonry-inside-back');
+    const masonryBoardEditButton = document.getElementById('btn-masonry-inside-edit');
+    if (options && options.env) {
+        masonryBackButton.classList.remove('hidden');
+        masonryBackButton.onclick = () => {
+            pages.gotoPreviousPage();
+        }
+
+        masonryBoardEditButton.classList.remove('hidden');
+        masonryBoardEditButton.onclick = () => {
+            const boardCardDataArray = localData.localCardData.find(lc => cardDataManage.getDataUID(lc) === options.env);
+            if (!boardCardDataArray)
+                return;
+            getModalCardCreation(boardCardDataArray);
+        }
+    }
+    else {
+        masonryBackButton.classList.add('hidden');
+        masonryBoardEditButton.classList.add('hidden');
+    }
+
+    const masonryAddCardButton = document.getElementById('btn-masonrylist-add-card');
+    masonryAddCardButton.onclick = () => {
+        const defaultBlocks = [];
+        if (options && options.env) {
+            const parentBlockTemplate = elementTemplates.find(et => et.key.includes('parent'));
+            const parentValueTemplate = parentBlockTemplate.value?.find(v => v.refName === 'parent');
+            const newParentValue = cardDataManage.makeBlockValueFromTemplate(parentValueTemplate);
+            cardDataManage.appendData(newParentValue, cardDataManage.makeValue('text', options.env));
+            cardDataManage.appendData(defaultBlocks, cardDataManage.makeValue(parentBlockTemplate.key[0], cardDataManage.makeBlock("parent", [newParentValue])));
+        }
+        getModalCardCreation(defaultBlocks);
+    }
 }
 
-function renderCards() {
-        console.log("============Begin New Rendering Round");
-
+function renderCards(options = null) {
     const columns = masonryContainer.children;
-    if (!localData.localCardData)
+    var availableCards = localData?.localCardData ?? [];
+    if (!availableCards)
         return;
     const totalCards = [];
-    for (var i = 0; i < localData.localCardData.length; i++) {
+    for (var i = 0; i < availableCards.length; i++) {
         const curIndex = i;
-        const cardDataArray = localData.localCardData[curIndex];
+        const cardDataArray = availableCards[curIndex];
+
+        //Card displating logics
+        if (!cardDisplay.isCardDisplayInEnv(options?.env, cardDataArray)) {
+            continue;
+        }
+
         //Card
-        const cardHtml = document.createElement('div');
-        cardHtml.classList.add('masonrylist-card');
+        const cardHtml = cardDisplay.displayCard(cardDataArray);
 
-        //Header
-
-        //Body
-        const cardBodyArea = document.createElement('div');
-        cardBodyArea.classList.add('card-body-area');
-        cardHtml.appendChild(cardBodyArea);
-        cardDataArray.forEach(blockDat => {
-            console.log("--Begin Examind Block:", blockDat);
-            const blockHtml = cardDataManage.getReturnValue("html", blockDat, null, "value");
-            if (blockHtml && typeof blockHtml === 'object') {
-                cardBodyArea.appendChild(blockHtml);
-            }
-        });
         const cardDatArray = cardDataArray;
-        cardHtml.addEventListener('click', () => {
-            //Test Editing
-            console.log(cardDataArray);
-            getModalCardCreation(cardDataArray);
-        });
-
         var score = 1000; //TEMP
         const statusBlocks = cardDataManage.getBlocks(cardDatArray, 'status');
         if (statusBlocks && statusBlocks.length > 0) {
@@ -69,7 +90,6 @@ function renderCards() {
             el: cardHtml,
             arrangement: score
         });
-        //columns[0].appendChild(cardHtml);
     }
     totalCards.sort((a, b) => a.arrangement - b.arrangement).forEach(card => {
         //console.log(card.arrangement);
