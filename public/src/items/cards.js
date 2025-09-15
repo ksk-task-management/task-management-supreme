@@ -225,7 +225,13 @@ export const elementTemplates = [
             {
                 name: "Parent",
                 refName: "parent",
-                type: "set-text|text"
+                type: "set-text|text",
+                initialValue: () => {
+                   return {
+                    key: "text",
+                    value: "<?>"
+                   }
+                },
             }
         ],
         return: {
