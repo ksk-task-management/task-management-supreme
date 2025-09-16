@@ -39,9 +39,9 @@ export function displayBoardCard(cardDataArray) {
     const boardUID = cardDataManage.getBlocks(cardDataArray, "uid")?.map(id => cardDataManage.getReturnValue("*", id, "uid", "value"))[0] ?? null;
     const boardTitle = cardDataManage.getBlocks(cardDataArray, "title")?.map(id => cardDataManage.getReturnValue("text", id, "title", "value"))[0] ?? "Unnamed Board";
     const boardSubcards = cardDataManage.getBlocks(cardDataArray, "subcards");
-    const boardSubcardVisible = boardSubcards?.map(id => cardDataManage.getReturnValue("text|boolean", id, "visible_outside", "value"))[0] ?? false;
-    if (boardSubcardVisible === "true") {
-        boardSubcardVisible = true;
+    const boardSubcardVisible = boardSubcards?.map(id => cardDataManage.getReturnValue("text|boolean", id, "visible_outside", "value"))[0] ?? true;
+    if (boardSubcardVisible === "false") {
+        boardSubcardVisible = false;
     }
 
     //Children
