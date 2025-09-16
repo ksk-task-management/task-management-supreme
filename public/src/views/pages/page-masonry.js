@@ -64,7 +64,7 @@ function renderCards(options = null) {
         const cardDataArray = availableCards[curIndex];
 
         //Card displating logics
-        if (!cardDisplay.isCardDisplayInEnv(options?.env, cardDataArray)) {
+        if (!cardDisplay.isCardDisplayInEnv(cardDataArray, options)) {
             continue;
         }
 

@@ -1,3 +1,5 @@
+import * as cardDataManage from "../items/card-data-manage";
+
 /**
  * Generates a random 6-digit number string.
  * @returns {string} A 6-digit string.
@@ -17,6 +19,31 @@ export function isExceedingViewport(elementBound) {
     elementBound.bottom <= 0 ||
     elementBound.right <= 0
   );
+}
+
+export function hyperflatArray(data, options = null) {
+  const excludedNulls = options && options.excludedNulls === true;
+  const renderValues = options && options.renderValues === true;
+  const  pracArray = [data];
+  var  targetIdx = pracArray.findIndex(e => Array.isArray(e));
+  while (targetIdx >= 0) {
+    const newChildren = [...pracArray[targetIdx]];
+    if (renderValues) {
+      var valuableIdx = newChildren.findIndex(nc => nc.key && nc.value);
+      while (valuableIdx >= 0) {
+        const extractedVal = cardDataManage.getReturnValue("*", newChildren[valuableIdx], null, "value");
+        const replacedChild = cardDataManage.isMatter(extractedVal) ? [extractedVal] : [];
+        newChildren.splice(valuableIdx, 1, ...replacedChild);
+        valuableIdx = newChildren.findIndex(nc => nc.key && nc.value);
+      }
+    }
+
+    pracArray.splice(targetIdx, 1, ...newChildren);
+    targetIdx = pracArray.findIndex(e => Array.isArray(e));
+  }
+  if (excludedNulls)
+    return pracArray.filter(r => cardDataManage.isMatter(r));
+  return pracArray;
 }
 
 export function isPartiallyInViewport(elementBound) {

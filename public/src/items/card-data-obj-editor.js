@@ -1,6 +1,6 @@
 import * as contextMenu from "../views/context-menu";
 
-export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffixIcon = null) {
+export function getEditor_Enum(dataset, template, target, prefixIcon = null, suffixIcon = null) {
     const enumCardTypeArea = document.createElement('span');
     enumCardTypeArea.classList.add('editor', 'input-enum-area-minimum');
     //Prefix Icon
@@ -16,7 +16,7 @@ export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffix
     enumTxtInputCaret.classList.add('editor', 'input-text-minimum');
     enumTxtInputCaret.role = 'textbox';
     enumTxtInputCaret.contentEditable = true;
-    enumTxtInputCaret.textContent = dat?.value ?? dataset[0].text;
+    enumTxtInputCaret.textContent = target?.target[target?.vp] ?? dataset[0].text;
     if (prefixEnumIcon) {
         prefixEnumIcon.textContent = dataset.find(ds => ds.text === enumTxtInputCaret.textContent)?.prefixIcon ?? dataset[0].prefixIcon;
     }
@@ -33,7 +33,8 @@ export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffix
                 }),
                 onClick: () => {
                     enumTxtInputCaret.textContent = type.text;
-                    dat.value = type.text;
+                    target.target[target.vp] = type.text;
+                    console.log("Dat Set!!!!", target);
                     if (type.prefixIcon && prefixEnumIcon) {
                         prefixEnumIcon.textContent = type.prefixIcon;
                     }
@@ -50,7 +51,7 @@ export function getEditor_Enum(dataset, template, dat, prefixIcon = null, suffix
         contextMenu.createMenu(enumTxtInputCaret, menuItems);
     }
     enumTxtInputCaret.addEventListener('input', ev => {
-        dat.value = ev.target.textContent;
+        target.target[target.vp] = ev.target.textContent;
         editingEvent(ev);
     });
     enumTxtInputCaret.addEventListener('click', ev => {

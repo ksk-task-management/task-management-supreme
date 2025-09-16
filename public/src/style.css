@@ -136,7 +136,7 @@ body {
 }
 
 .inline-value-editor-set::before {
-    content: "{";
+    content: "[";
     font-size: 22px;
     color: rgb(126, 126, 126);
     display: inline-block;
@@ -147,7 +147,7 @@ body {
 }
 
 .inline-value-editor-set::after {
-    content: "}";
+    content: "]";
     font-size:22px;
     color: rgb(126, 126, 126);
     display: inline-block;
@@ -249,9 +249,6 @@ body {
 .inline-value-display-refer-area .icon {
     color: rgb(11, 132, 29) !important;
     text-shadow: var(--shadow-min);
-    /*background-color: rgba(16, 69, 36, 0.15);
-    border-radius: 3px;
-    padding: 0px 2px;*/
 }
 
 /*Value Editor: Boolean element*/
@@ -300,6 +297,37 @@ body {
     margin: 0px 2px;
     color: white !important;
     text-shadow: var(--shadow-min);
+}
+
+/*Value Editor: Stylings*/
+.inline-value-editor-style-area {
+    display: inline;
+    background-color: rgb(194, 188, 244);
+    border: rgb(137, 129, 210) 1px solid;
+    border-radius: 5px;
+    padding: 0px 4px;
+    margin-left: 4px;
+}
+
+.inline-value-editor-style-domain {
+    text-align: center;
+    align-content: center;
+    background: rgb(179, 173, 235) !important;
+    /*border-color: rgb(113, 112, 159) !important;*/
+    border-radius: 0px !important;
+    border: none !important;
+    padding: 0px 2px !important;
+}
+
+.inline-value-editor-style-domain::after {
+    content: "::";
+    display: inline;
+    color: #7f7cc7;
+}
+
+.inline-value-editor-style-icon, .inline-value-editor-style-domain span {
+    color: rgb(91, 82, 166) !important;
+    font-weight: 700 !important;
 }
 
 /*Buttons*/
@@ -711,6 +739,7 @@ body {
 .masonrylist-board-card {
     background-color: #e4e4e4;
     border-color: #ababab;
+    padding: 5px;
 }
 
 .board-card-area-upper {
@@ -726,6 +755,7 @@ body {
     width: 100%;
     height: fit-content;
     padding: 5px;
+    line-height: 18px;
 }
 
 .board-card-area-lower {
@@ -751,16 +781,36 @@ body {
     font-weight: bolder;
     color: #4f4a4d;
     text-shadow: var(--shadow-min);
+    line-height: 14px;
 }
 
-.board-card-title::before {
+.board-card-title-icon {
     display: inline;
-    content: attr(data-fun-text);
-    padding: 0px 4px;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 0px 2px;
     background-color: #0000002b;
     color:#524d4f;
     border-radius: 3px;
     margin-right: 4px;
+}
+
+.board-card-area-lower-details {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 2px;
+}
+
+.board-card-children-count {
+    font-size: 12px;
+    font-weight: bolder;
+    background-color: rgb(153, 153, 153);
+    color: rgb(49, 49, 49);
+    text-shadow: var(--shadow-min);
+    border-radius: 7px;
+    padding: 1px 6px;
 }
 
 /*Card Management*/
@@ -837,7 +887,6 @@ body {
     position: absolute !important;
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
     width: fit-content;
     height: fit-content;
     padding: 7px;
@@ -850,6 +899,12 @@ body {
     z-index: 999;
 }
 
+.editor.context-menu.horizontal {
+    flex-direction: row !important;
+    gap: 4px;
+}
+
+
 .editor.btn-context-menu-item {
     display: flex;
     flex-direction: row;
@@ -860,7 +915,7 @@ body {
 }
 
 .btn-context-menu-item span {
-    font-size: var(--primary-font-size);
+    font-size: 16px;
     font-weight: 600;
     color: rgb(67, 65, 65);
     white-space: nowrap;
@@ -1003,7 +1058,7 @@ body {
 .editor.input-enum-area-minimum {
     border: rgb(202, 202, 202) 1px solid;
     border-radius: 5px;
-    background-color: rgba(142, 142, 142, 0.2) !important;
+    background-color: rgba(142, 142, 142, 0.2);
     margin-left: 6px;
     padding: 2px;
 }

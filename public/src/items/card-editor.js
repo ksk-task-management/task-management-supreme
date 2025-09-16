@@ -6,10 +6,10 @@ import { elementTemplates } from "./cards";
 export function renderExistingBlocks(parentHtml, dataArray) {
     if (!parentHtml || !dataArray || dataArray.length <= 0)
         return;
-    console.log("T-1", dataArray);
+    //console.log("T-1", dataArray);
     dataArray.forEach(blockdat => {
         const elementTemplate = elementTemplates.find(et => et.key.includes(blockdat.key));
-        console.log("T-1# >>Creating Edtor For: ", blockdat);
+        //console.log("T-1# >>Creating Edtor For: ", blockdat);
         createEditor(parentHtml, "html", dataArray, elementTemplate, cardDataManage.makeValue(blockdat.key, blockdat));
     });
 }
@@ -67,6 +67,10 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
         inputFieldHandlerHtml.classList.add('inline');
     }
     inputFieldHandlerHtml.appendChild(newInputField);
+    if (isAdditive) {
+        inputFieldHandlerHtml.classList.add("input-additive");
+    }
+
     //const placeholderChar = '\u200C';
     newInputField.addEventListener('input', ev => {
         //const env = cardDataManage.getDataEnvironment(data);
@@ -81,7 +85,8 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
 
         const matchedItems = [];
 
-        if (data && valueType) {
+        if (valueType) {
+            console.log("Inputting ", valueType);
             elementTemplates.forEach(et => {
                 if (!et.key || et.key.length <= 0)
                     return;
@@ -110,7 +115,7 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
                                     //Value
                                     newValueDat = cardDataManage.makeValue(etk, undefined);
                                 }
-                                cardDataManage.appendData(data, newValueDat, forceDataToBeValue);
+                                cardDataManage.appendData(data, newValueDat, {forceToBeValue: forceDataToBeValue, ...options});
 
                                 if (!isAdditive) {
                                     //Destroy old value editors
@@ -123,10 +128,10 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
                             
                                 const newBlockEditor = createEditor(parentHtml, valueType, data, et, newValueDat);
 
-                                if (!isAdditive) {
+                                //if (!isAdditive) {
                                     //Handle inline caret behaviour
                                     checkInlineCaretVisibility(parentHtml);
-                                }
+                                //}
                             }
                         };
                         const m1 = textParts.filter(p => p.addMode === true).map(p => p.text).join('');
@@ -161,8 +166,11 @@ export function checkInlineCaretVisibility(parentHtml, exceptionCount = 0) {
             caret = currentEl;
         }*/
     })
-    if (!caret || !caret.classList.contains('inline'))
+    if (!caret || !caret.classList.contains('inline') || caret.classList.contains('input-additive')){
+        caret.classList.remove('hidden');
         return;
+    }
+
     const children = parentHtml.querySelectorAll('.value-object');
     const childrenCount = children.length - exceptionCount;
     if (childrenCount > 0) {
@@ -181,11 +189,12 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
     //console.log("T0 Obj Template", objectTemplate);
     //console.log("T0.q The Obj Itself", objectDat);
     var newEditor = null;
+    var isBlock = false;
     if (objectTemplate.return && objectTemplate.return.block) {
         //console.log("T1.1");
         //For Provided Element Template: Block call, ...
-            //Block Editor
-            newEditor = createBlockEditor(parentHtml, objectDat.value);
+        newEditor = createBlockEditor(parentHtml, objectDat.value);
+        isBlock = true;
     }
     else {
         //For unprovided template: Value call, Inline value call... 
@@ -198,52 +207,13 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                 if (!options) options = {};
                 options.innerValueType = valueType.split('-')[1].trim();
             }
-            newEditor = cardDataManage.getReturnValue(objectDat.key ?? valueType, objectDat, null, "editor", options);
-            //Check if the element template can provide the return type as request or not?
-            /*const satisfactions = cardDataManage.checkValueReturnSatisfaction(actualElementTemplate, valueType);
-             console.log("T1.2.1", satisfactions);
-            var selectedReturn = null;
-            while (!selectedReturn && satisfactions.length > 0) {
-                const first = satisfactions.shift();
-                if (first.editor)
-                    selectedReturn = first;
-            }
-            console.log("T1.2.2");
-            if (selectedReturn) {
-                 console.log("T1.2.3");
-                newEditor = selectedReturn.editor(objectTemplate, objectDat);
-            }
-            else if (actualElementTemplate.return.block) {
-                //No satisfying editor for this type of value -> Find other way to display the editor
-                console.log("This value required block display");
-            }
-            else {
-                return null;
-            }
-
-            //Check if the element template provide block display or not*/
-
+            newEditor = cardDataManage.getReturnValue(actualValueKey, objectDat, null, "editor", options);
         }
+        isBlock = false;
     }
-    /*if (objectTemplate.return.block) {
-        //Block Editor
-        const newBlockEditor = createBlockEditor(parentHtml, objectDat);
-    }
-    else {
-        //Value Editor (Customized within the template)
-    }*/
+   
     if (newEditor) {
-       // console.log("T2 Inserting the new editor: ", newEditor, "Into", parentHtml, parentHtml.children.length);
        insertEditorAgainstCaret(parentHtml, newEditor);
-        /*const inputCaret = Array.from(parentHtml.children).find(child => child.classList.contains('block-insert-omit'));
-        if (inputCaret && parentHtml.contains(inputCaret)) {
-            //console.log("T2.1 Inserting before the caret: ", inputCaret);
-            parentHtml.insertBefore(newEditor, inputCaret);
-        }
-        else {
-            parentHtml.appendChild(newEditor);
-        }*/
-
         newEditor.classList.add('value-object');
         newEditor.addEventListener('click', ev => {
             ev.target.classList.toggle('clicked');
@@ -255,24 +225,75 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
             });
 
             if (ev.target.classList.contains('clicked')) {
-                const menuItems = [
+                //Common
+                const menuItems = [];
+                //Array Editors
+                if (parentData && Array.isArray(parentData)) {
+                    const currentIdx = parentData.findIndex(c => cardDataManage.isMatch(c, objectDat));
+                    if (currentIdx > 0) {
+                        menuItems.push(
+                            {
+                                icon: "north",
+                                onClick: () => {
+                                    const targetIdx = currentIdx - 1;
+                                    const targetElement = parentData[targetIdx];
+                                    var pracVal = objectDat;
+                                    if (cardDataManage.isBlock(targetElement) && !cardDataManage.isBlock(pracVal) && pracVal.value && cardDataManage.isBlock(pracVal.value)) {
+                                        pracVal = pracVal.value;
+                                    }
+                                    parentData[targetIdx] = pracVal;
+                                    parentData[currentIdx] = targetElement;
+                                    const testIndex = Array.from(parentHtml.children).indexOf(newEditor);
+                                    if (testIndex > -1) {
+                                       const target = parentHtml.children[testIndex - 1];
+                                       parentHtml.insertBefore(newEditor, target);
+                                    }
+                                }
+                            }
+                        )
+                    }
+
+                    if (currentIdx < parentData.length - 1) {
+                        menuItems.push(
+                            {
+                                icon: "south",
+                                onClick: () => {
+                                    const targetIdx = currentIdx + 1;
+                                    const targetElement = parentData[targetIdx];
+                                    var pracVal = objectDat;
+                                    if (cardDataManage.isBlock(targetElement) && !cardDataManage.isBlock(pracVal) && pracVal.value && cardDataManage.isBlock(pracVal.value)) {
+                                        pracVal = pracVal.value;
+                                    }
+                                    parentData[targetIdx] = pracVal;
+                                    parentData[currentIdx] = targetElement;
+                                    const testIndex = Array.from(parentHtml.children).indexOf(newEditor);
+                                    if (testIndex > -1) {
+                                       const target = parentHtml.children[testIndex + 1];
+                                       parentHtml.insertBefore(target, newEditor);
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+                //Universal
+                menuItems.push(
                     {
-                        text: "Delete",
                         icon: 'delete',
                         color: 'red',
-                        fontSize: '14px',
                         onClick: () => {
-                            console.log("Deleted: ", objectDat);
-                            console.log("Remaining: ", parentData);
-                            cardDataManage.deleteData(parentData, objectDat);
+                            cardDataManage.deleteData(parentData, objectDat, {...options});
                             newEditor.remove();
                             checkInlineCaretVisibility(parentHtml, 1);
-                           // console.log('Deleting the element');
                         }
                     }
-                ];
-                const menu = contextMenu.createMenu(newEditor, menuItems);
-                //contextMenu.adjustCustomPosition(ev.clientX, ev.clientY, 0, 0);
+                );
+
+                const menu = contextMenu.createMenu(newEditor, menuItems, {
+                    direction: "horizontal", 
+                    alignItems: "center",
+                    firstSelected: false
+                });
                 const callerBound = newEditor.getBoundingClientRect();
                 const menuBound = menu.getBoundingClientRect();
                 const newLeft = Math.max(callerBound.left, Math.min(ev.clientX, callerBound.left + callerBound.width - menuBound.width));
@@ -314,7 +335,7 @@ export function createBlockEditor(parentHtml, block) {
     blockKeyArea.appendChild(blockIcon);
     const blockKeyTitle = document.createElement('span');
     console.log("[B] ", block.key, typeof block.key);
-    blockKeyTitle.textContent = block.key[0].toUpperCase() + block.key.substring(1);
+    blockKeyTitle.textContent = block.key[0].toUpperCase() + block.key.substring(1).replaceAll('-', " ");
     blockKeyArea.appendChild(blockKeyTitle);
     newBlockEditor.appendChild(blockKeyArea);
     //Values
@@ -420,7 +441,7 @@ export function createValueEditor(parentHtml, valueTemplate, valueDat) {
     if (valueDat.value && valueDat.value.key) {
         valElementTemplate = elementTemplates.find(et => et.key.includes(valueDat.value.key)); //valueEditors.find(v => v.type && v.type.includes(valueTemplate.type));
     }
-    console.log("T@ Generating a value editor for: ", valueTemplate, "-->", valElementTemplate, valueDat);
+   // console.log("T@ Generating a value editor for: ", valueTemplate, "-->", valElementTemplate, valueDat);
     const newValueEditor = document.createElement('span');
     newValueEditor.classList.add('editor', 'value-editor');
     //Header

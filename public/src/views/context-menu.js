@@ -5,7 +5,18 @@ export var activeMenu = null;
  * @param {This is the array of the object consist of icon, text} menuItems 
 */
 export function createMenu(callerHtml, menuItems, options = null) {
+    //Default settings
+    if (activeMenu) {
+        activeMenu.classList.remove('horizontal');
+    }
+
     const clearCaller = options?.clearCaller ?? false;
+    const menuDirection = options?.direction ?? "vertical";
+    const forcedWidth = options?.forcedWidth ?? false;
+    const alignItems = options?.alignItems ?? false;
+    const firstSelected = options?.firstSelected ?? true;
+
+   
 
     if (!activeMenu) {
         activeMenu = document.createElement('div');
@@ -22,6 +33,10 @@ export function createMenu(callerHtml, menuItems, options = null) {
             }
         });*/
     }
+
+    if (activeMenu) {
+        activeMenu.classList.add(menuDirection);
+    }
     
     if (!menuItems || menuItems.length <= 0) {
         activeMenu.style.visibility = 'hidden';
@@ -33,7 +48,9 @@ export function createMenu(callerHtml, menuItems, options = null) {
         menuItems.forEach((item, index) => {
             const newItem = document.createElement('div');
             newItem.classList.add('area-horizontal', 'area-fit-horizontal', 'editor', 'btn-context-menu-item');
-            if (index === 0) {
+            if (forcedWidth) newItem.style.width = forcedWidth;
+            if (alignItems) newItem.style.justifyItems = alignItems;
+            if (firstSelected && index === 0) {
                 newItem.classList.add('selected');
             }
             if (item.icon) {

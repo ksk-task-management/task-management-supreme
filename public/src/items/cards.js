@@ -447,6 +447,31 @@ export const elementTemplates = [
         }
     },
     {
+        key: ['card-styling'],
+        icon: () => "format_paint",
+        value: [
+            {
+                name: "Styles",
+                refName: "styles",
+                type: "set-style|text",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
+            }
+        ],
+        return: {
+            "html": {
+
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
         key: ["array"],
         icon: () => "more_horiz",
         value: [
@@ -687,6 +712,54 @@ export const elementTemplates = [
                 }
             },
             "block":{
+            }
+        }
+    },
+    {
+        key: ["html-block"],
+        icon: () => "html",
+        value: [
+            {
+                name: "HTML",
+                refName: "html_block",
+                type: "html|text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "<HTML Block>"
+                    }
+                }
+            },
+            {
+                name: "Full Width",
+                refName: "full_width",
+                type: "boolean|text",
+                initialValue: () => {
+                    return {
+                        key: "boolean",
+                        value: true
+                    }
+                },
+                isOmittable: true
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    const result = cardDataManage.getReturnValue('html|text', dat, "html_block", "value");
+                    const isLimitedWidth = cardDataManage.getReturnValue('text', dat, "full_width", "value");
+                    const htmlResult = document.createElement('div');
+                    htmlResult.innerHTML = result;
+                    if (isLimitedWidth === true || isLimitedWidth === "true") {
+                        htmlResult.firstChild.style.width = "100%";
+                    }
+                  
+                    console.log(htmlResult.innerHTML, htmlResult, htmlResult.firstChild);
+                    return htmlResult;
+                }
+            },
+            "block": {
+
             }
         }
     },
@@ -948,6 +1021,7 @@ export const elementTemplates = [
                     textEditor.contentEditable = valueTemplate.isEditable !== false;
                     textEditor.role = 'textbox';
                     textEditor.classList.add('editor', 'input-text-minimum');
+                    //console.log("0000000000000000000000000000Text displays: ", valueObject, valueObject?.value)
                     textEditor.textContent = valueObject?.value ?? "undefined";
                     textEditor.addEventListener('input', ev => {
                         valueObject.value = ev.target.textContent;
@@ -1006,7 +1080,7 @@ export const elementTemplates = [
         }
     },
     {
-        key: ["set", "collection"],
+        key: ["set"],
         icon: () => "data_array",
         value: [
             {
@@ -1064,7 +1138,7 @@ export const elementTemplates = [
             "cardtype": {
                 value: (template, dat) => dat.value,
                 editor: (template, dat) => {
-                    return cardDataObjectEditor.getEditor_Enum(majorCardTypes.map(t => {return {text: t.type, icon: t.icon, prefixIcon: t.icon};}), template, dat, "circle", "arrow_drop_down_circle");
+                    return cardDataObjectEditor.getEditor_Enum(majorCardTypes.map(t => {return {text: t.type, icon: t.icon, prefixIcon: t.icon};}), template, {target: dat, vp: "value"}, "circle", "arrow_drop_down_circle");
                 },
                 represent: ["text"]
             }
@@ -1077,7 +1151,7 @@ export const elementTemplates = [
             "cardstatus": {
                 value: (template, dat) => dat.value,
                 editor: (template, dat) => {
-                    return cardDataObjectEditor.getEditor_Enum(defaultCardStatus.map(ds => {return {text: ds.status, icon: ds.icon, prefixIcon: ds.icon};}), template, dat, "circle");
+                    return cardDataObjectEditor.getEditor_Enum(defaultCardStatus.map(ds => {return {text: ds.status, icon: ds.icon, prefixIcon: ds.icon};}), template, {target: dat, vp: "value"}, "circle");
                 },
                 represent: ['text']
             }
@@ -1115,8 +1189,88 @@ export const elementTemplates = [
                 represent: ["text"]
             }
         }
+    },
+    {
+        key: ['style'],
+        icon: () => "format_paint",
+        value: [
+            {
+                refName: "$",
+                initialValue: () => {
+                    return {
+                        key: "style",
+                        value: {
+                            styleName: "icon",
+                            styleValue: {
+                                key: "text",
+                                value: "token"
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        return: {
+            "style": {
+                value: (template, dat) => {
+                    const styleName = dat?.value?.styleName ?? "";
+                    const styleValue = cardDataManage.getReturnValue("text", dat?.value?.styleValue, "*", "value") ?? "";
+                    return `${styleName}: ${styleValue}`;
+                },
+                editor: (template, dat) => {
+                    const styleName = dat?.value?.styleName ?? "";
+                    const styleValue = cardDataManage.getReturnValue("text", dat?.value?.styleValue, "*", "value") ?? "";
+                    const styleTemplate = cardStyleList.find(sl => sl.styleName === styleName);
+
+                    const styleAreaHtml = document.createElement('span');
+                    styleAreaHtml.classList.add('inline-value-editor-style-area');
+                    const styleIconHtml = document.createElement('span');
+                    styleIconHtml.classList.add('icon', 'material-symbols-outlined', 'inline-value-editor-style-icon');
+                    styleIconHtml.textContent = styleTemplate?.icon ?? "format_paint";
+                    styleAreaHtml.appendChild(styleIconHtml);
+                    const styleDomainAreaHtml = cardDataObjectEditor.getEditor_Enum(cardStyleList.map(ds => {return {text: ds.styleName, icon: ds.icon, prefixIcon: ds.icon};}), template, {target: dat.value, vp: "styleName"}, "circle");
+                    styleDomainAreaHtml.classList.add('inline-value-editor-style-domain');
+                    styleAreaHtml.appendChild(styleDomainAreaHtml);
+                    //console.log("Rendering********", dat.value, dat.value.styleValue);
+                    if (dat.value && dat.value.styleValue) {
+                        const valElementTemplate = elementTemplates.find(f => f.key.includes(dat.value.styleValue.key));
+                        if (valElementTemplate) {
+                            //console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^", dat.value.styleValue, dat.value.styleValue.value, dat.value.styleValue.key)
+                            const valueValueEditor = cardEditor.createEditor(styleAreaHtml, dat.value.styleValue.key, dat.value, valElementTemplate, dat.value.styleValue, {vp: "styleValue"});
+                        }
+                    }
+                    const innerCaret = cardEditor.createInputCarret(styleAreaHtml, dat.value, "text", {inline: true, innerValueType: "text", vp: "styleValue"});
+                    cardEditor.checkInlineCaretVisibility(styleAreaHtml);
+
+                    
+                    /* if (valElementTemplate) {
+                            //Value > Value Editor
+                            const valueValueEditor = createEditor(newValueEditor, valueTemplate.type, valueDat, valElementTemplate, valueDat.value);
+                        }
+                        //Value > Caret to select inner values
+                        const innerCaret = createInputCarret(newValueEditor, valueDat, valueTemplate.type, {inline: true, innerValueType: valueTemplate.type});
+                        checkInlineCaretVisibility(newValueEditor);*/
+                    //const styleValueHtml = elementTemplates.find(et => et.key.includes('text'))?.return?.text?.editor(template, dat.value.styleValue);
+                    return styleAreaHtml;
+                },
+                represent: ["text"]
+            }
+        }
     }
 ];
+
+const cardStyleList = [
+    {
+        styleName: "title-prefix",
+        icon: "abc",
+        valueType: "text"
+    },
+    {
+        styleName: "icon",
+        icon: "nest_farsight_eco",
+        valueType: "text"
+    }
+]
 
 export function getModalCardCreation(cardDataArray = null) {
     const cardCreationWindowName = "Card Creation";

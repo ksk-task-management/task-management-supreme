@@ -53,8 +53,10 @@ export function makeValue(valueKey, value) {
     return {valueID: generateShortId(), key: valueKey, value: pracVal};
 }
 
-export function appendData(parent, objectDat, forceToBeValue = false) {
+export function appendData(parent, objectDat, options = null) {
     //console.log("Appending ", parent, "<--", objectDat);
+    const forceToBeValue = options && options.forceToBeValue === true;
+    const targetName = options?.vp ?? "value";
     if (Array.isArray(parent)) {
         if (objectDat.value && isBlock(objectDat.value) && !forceToBeValue) {
             parent.push(objectDat.value);
@@ -65,12 +67,16 @@ export function appendData(parent, objectDat, forceToBeValue = false) {
     }
     else {
         //The parent is a value section
-        parent.value = objectDat;
+        if (objectDat.key && objectDat.value && !objectDat.valueID && !isBlock(objectDat)) {
+            objectDat.valueID = generateShortId();
+        }
+        parent[targetName] = objectDat;
     }
     console.log("Appended to: ", parent);
 }
 
-export function deleteData(parent, objectDat) {
+export function deleteData(parent, objectDat, options = null) {
+    const targetName = options?.vp ?? "value";
     if (Array.isArray(parent)) {
         var valueIndex = parent.findIndex(el => el.valueID === objectDat.valueID);
         if (valueIndex < 0 && isBlock(objectDat.value)) {
@@ -81,8 +87,8 @@ export function deleteData(parent, objectDat) {
             parent.splice(valueIndex, 1);
     }
     else {
-        if (parent.value.valueID === objectDat.valueID) {
-            parent.value = undefined;
+        if (!parent[targetName] || !parent[targetName]?.valueID || parent[targetName].valueID === objectDat.valueID) {
+            parent[targetName] = undefined;
         }
     }
     console.log("Deleted from: ", parent);
@@ -449,6 +455,24 @@ export function isBlock(objectDat) {
     if (elementTemplate && elementTemplate.return && elementTemplate.return.block) {
         return true;
     }
+    return false;
+}
+
+export function isMatch(d1, d2) {
+    var data1 = d1;
+    var data2 = d2;
+    if (isBlock(data1) && !isBlock(data2) && data2.value && isBlock(data2.value)) {
+        data2 = data2.value;
+    }
+    else if (isBlock(data2) && !isBlock(data1) && data1.value && isBlock(data1.value)) {
+        data1 = data1.value;
+    }
+    //console.log("[1]", data1, data2, data1 === data2);
+    if (data1 === data2) return true;
+    //console.log("[2]", data1.valueID, data2.valueID, data1.valueID === data2.valueID);
+    if (data1.valueID && data2.valueID && data1.valueID === data2.valueID) return true;
+    //console.log("[3]", data1.uid, data2.uid, data1.uid === data2.uid);
+    if (data1.uid && data2.uid && data1.uid === data2.uid) return true;
     return false;
 }
 
