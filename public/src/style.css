@@ -157,6 +157,16 @@ body {
     background-color: transparent;
 }
 
+.inline-value-editor-set span.value-object:not(:nth-last-child(2)):after {
+    content: ",";
+    font-size: calc(var(--primary-font-size) + 2px);
+    color: rgb(197, 197, 197);
+    display: inline;
+    margin-left: -2px;
+    margin-right: 2px;
+    display: inline;
+}
+
 /*Display: URL*/
 .inline-value-display-url-area {
     display: inline-flex;
@@ -255,8 +265,17 @@ body {
 
 /*Value Display: Codeblock*/
 .inline-value-display-codeblock {
-    border-radius: 5px;
     overflow: auto;
+    border: #ababab 1px solid;
+    border-radius: 5px;
+}
+
+.inline-value-display-codeblock::before {
+    content: "</> "attr(data-language);
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgb(192, 192, 192);
 }
 
 /*Value Editor: Boolean element*/
