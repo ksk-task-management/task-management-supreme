@@ -174,7 +174,7 @@ export const elementTemplates = [
                 type: "cardtype",
                 initialValue: () => {
                     return {
-                        key: "cardtype|text",
+                        key: "cardtype",
                         value: majorCardTypes[0].type
                     }
                 }
@@ -1197,8 +1197,10 @@ export const elementTemplates = [
             "cardtype": {
                 value: (template, dat) => dat.value,
                 editor: (template, dat) => {
-                    const parentUIDs = hyperflatArray(cardDataManage.getBlocks(cardDataManage.getCardContainingData(dat), "parent")?.map(pt => cardDataManage.getReturnValue("text", pt, "parent", "value")), {renderValues: true, excludedNulls: true});
-                    return cardDataObjectEditor.getEditor_Enum(majorCardTypes.filter(ct => !ct.requiredParent || parentUIDs.length > 0).map(t => {return {text: t.type, icon: t.icon, prefixIcon: t.icon};}), template, {target: dat, vp: "value"}, "circle", "arrow_drop_down_circle");
+                    /*if (dat && dat.value) {
+                        const parentUIDs = hyperflatArray(cardDataManage.getBlocks(cardDataManage.getCardContainingData(dat), "parent")?.map(pt => cardDataManage.getReturnValue("text", pt, "parent", "value")), {renderValues: true, excludedNulls: true});
+                    }*/
+                    return cardDataObjectEditor.getEditor_Enum(majorCardTypes.map(t => {return {text: t.type, icon: t.icon, prefixIcon: t.icon};}), template, {target: dat, vp: "value"}, "circle", "arrow_drop_down_circle");
                 },
                 represent: ["text"]
             }
