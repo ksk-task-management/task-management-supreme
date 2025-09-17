@@ -840,6 +840,39 @@ body {
     padding: 1px 6px;
 }
 
+.board-card-progress-line-area {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: 4.5px;
+    margin-top: 3px;
+    margin-right: -0.2px;
+    margin-left: -0.2px;
+    gap: 0;
+}
+
+.board-card-progress-line-child {
+    --color-start: rgb(109, 109, 109);
+    --color-end: rgb(255, 255, 236);
+    display: block;
+    font-size: 2px;
+    background: color-mix(in srgb, var(--color-start), var(--color-end) calc(var(--data-percent) * 1%));
+    box-shadow: 1px 2px 2px rgb(0, 0, 0, calc(var(--data-percent) * 1% * 0.35));
+    height: 100%;
+    flex: 1 1;
+}
+
+.board-card-progress-line-child.start {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.board-card-progress-line-child.end {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
 /*Card Management*/
 .modal-card-creation {
     width: 100% !important;

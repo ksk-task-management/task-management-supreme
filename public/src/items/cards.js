@@ -44,6 +44,7 @@ export const defaultCardStatus = [
         icon: "history_toggle_off",
         color: "#e0267a",
         scoreAdjust: 40,
+        progressPercent: 25,
         quickButtons: [
             {
                 icon: "rocket",
@@ -60,6 +61,7 @@ export const defaultCardStatus = [
         icon: "offline_bolt",
         color: "#7025e8",
         scoreAdjust: 2,
+        progressPercent: 50,
         quickButtons: [
             {
                 icon: "satellite_alt",
@@ -79,6 +81,7 @@ export const defaultCardStatus = [
         status: "Pending Background",
         icon: "cloud_circle",
         scoreAdjust: 10,
+        progressPercent: 45,
         color: "#4790d8ff",
         quickButtons: [
             {
@@ -96,11 +99,13 @@ export const defaultCardStatus = [
         icon: "check_circle",
         color: "#25e88d",
         scoreAdjust: 0,
+        progressPercent: 100,
     },
     {
         status: "Final Touch",
         icon: "nest_farsight_heat",
         color: "#1bdabaff",
+        progressPercent: 100,
         scoreAdjust: 5, 
         quickButtons: [
             {
@@ -117,7 +122,8 @@ export const defaultCardStatus = [
         status: "On Hold",
         icon: "pause_circle",
         color: "#e0bb26",
-        scoreAdjust: 300,
+        scoreAdjust: 10,
+        progressPercent: 0,
         quickButtons: [
             {
                 icon: "exercise",
@@ -134,6 +140,7 @@ export const defaultCardStatus = [
         icon: "lasso_select",
         color: "#bababaff",
         scoreAdjust: 90,
+        progressPercent: 10,
         quickButtons: [
             {
                 icon: "bolt",
@@ -150,6 +157,7 @@ export const defaultCardStatus = [
         icon: "cancel",
         color: "#54444b",
         scoreAdjust: 500,
+        progressPercent: 0,
         quickButtons: [
             {
                 icon: "electric_bolt",

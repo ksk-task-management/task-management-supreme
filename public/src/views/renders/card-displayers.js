@@ -1,5 +1,5 @@
 import * as cardDataManage from "../../items/card-data-manage";
-import { getModalCardCreation } from "../../items/cards";
+import { defaultCardStatus, getModalCardCreation } from "../../items/cards";
 import * as pages from "../pages";
 import * as localData from "../../databases/local-data";
 import { hyperflatArray } from "../../utils/helpers";
@@ -94,6 +94,31 @@ export function displayBoardCard(cardDataArray) {
     boardChildrenCountHtml.classList.add('board-card-children-count');
     boardChildrenCountHtml.textContent = (boardChildren?.length ?? 0) + " Cards";
     boardLowerDetailsArea.appendChild(boardChildrenCountHtml);
+
+    //Subcard status one-dimensional displayer
+    if (boardChildren.length > 0) {
+        const boardProgressAreaHtml = document.createElement('div');
+        boardProgressAreaHtml.classList.add('board-card-progress-line-area');
+        const progressPercents = boardChildren.map(child => {
+            const childStatus = cardDataManage.getBlocks(child, "status")?.map(s => cardDataManage.getReturnValue("text", s, "status", "value"))[0] ?? null;
+            return defaultCardStatus.find(ds => ds.status === childStatus)?.progressPercent ?? 0;
+        });
+        progressPercents.forEach((percent, idx) => {
+            const eachPercentHtml = document.createElement('span');
+            eachPercentHtml.classList.add('board-card-progress-line-child');
+            if (idx === 0) {
+                eachPercentHtml.classList.add('start');
+            }
+            else if (idx === progressPercents.length - 1) {
+                eachPercentHtml.classList.add('end');
+            }
+            eachPercentHtml.style.setProperty("--data-percent", percent);
+            boardProgressAreaHtml.appendChild(eachPercentHtml);
+        });
+        lowerBoardAreaHtml.appendChild(boardProgressAreaHtml);
+    }
+
+
     boardCardHtml.appendChild(lowerBoardAreaHtml);
 
     //Board behaviour -> Click to open the masonry list of the inner board section
@@ -119,7 +144,6 @@ export function isCardDisplayInEnv(cardDataArray, options = null) {
             //Finding env card's level
             if (env && !envLevel) {
                 envLevel = curCards.find(cc => cc.uid === env)?.level;
-                console.log("Found env: ", env, envLevel)
             }
 
             //Env
@@ -145,7 +169,6 @@ export function isCardDisplayInEnv(cardDataArray, options = null) {
             var result = cardDataManage.getReturnValue("set|text", p, "parent", "value");
             return result;
         })], {excludedNulls: true, renderValues: true});
-        console.log("test uid------------------", parentUIDs);
 
         const newParent = [];
         if (parentUIDs.length > 0) {
