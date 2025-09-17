@@ -157,6 +157,7 @@ body {
     background-color: transparent;
 }
 
+/*Display: URL*/
 .inline-value-display-url-area {
     display: inline-flex;
     flex-direction: row;
@@ -250,6 +251,12 @@ body {
 .inline-value-display-refer-area .icon {
     color: rgb(11, 132, 29) !important;
     text-shadow: var(--shadow-min);
+}
+
+/*Value Display: Codeblock*/
+.inline-value-display-codeblock {
+    border-radius: 5px;
+    overflow: auto;
 }
 
 /*Value Editor: Boolean element*/

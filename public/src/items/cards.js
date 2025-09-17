@@ -769,8 +769,75 @@ export const elementTemplates = [
         }
     },
     {
+        key: ["code-block"],
+        icon: () => "code",
+        value: [
+            {
+                name: "Code",
+                refName: "code",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "<Code>"
+                    }
+                },
+                type: "text"
+            },
+            {
+                name: "Language",
+                refName: "language",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "javascript"
+                    }
+                },
+                isOmittable: true
+            }/*,
+            {
+                name: "Prism Theme Link",
+                refName: "prism_theme_link",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
+                    }
+                },
+                isOmittable: true
+            }*/
+        ],
+        return: {
+            "html": {
+                value: (templatem, dat) => {
+                    const code = cardDataManage.getReturnValue('text', dat, "code", "value") ?? "Empty Code.";
+                    const language = cardDataManage.getReturnValue('text', dat, "language", "value")?.toLowerCase() ?? "javascript";
+                    /*const theme = cardDataManage.getReturnValue('text', dat, "prism_theme_link", "value")?.toLowerCase() ?? "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css";
+
+                    const themeLink = document.getElementById('prism-theme');
+                    //const customizedTheme = `https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/${theme}`;
+                    themeLink.href = theme;*/
+
+                    const newCodeBlockHtml = document.createElement("pre");
+                    const codeElement = document.createElement("code");
+                    codeElement.classList.add(`language-${language}`);
+                    codeElement.textContent = code;
+                    newCodeBlockHtml.appendChild(codeElement);
+                    newCodeBlockHtml.dataset.language = language;
+                    newCodeBlockHtml.classList.add('inline-value-display-codeblock');
+                    Prism.highlightElement(codeElement);
+                    return newCodeBlockHtml;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
         key: ["qr-code"],
-        iocn: () => "qr_code",
+        icon: () => "qr_code",
         value: [
             {
                 name: "Content",
@@ -962,6 +1029,7 @@ export const elementTemplates = [
                     statusHtmlArea.style.gap = '4px';
                     statusHtmlArea.style.height = 'fit-content';
                     statusHtmlArea.style.padding = '5px';
+                    statusHtmlArea.style.marginTop = "2px";
                     statusHtmlArea.style.borderRadius = '10px';
                     statusHtmlArea.style.overflow = 'hidden';
                     const datValue = cardDataManage.getReturnValue("cardstatus|text|html", dat, "status", "value");
