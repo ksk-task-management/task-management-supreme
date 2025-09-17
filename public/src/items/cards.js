@@ -652,18 +652,49 @@ export const elementTemplates = [
             {
                 name: "Source",
                 refName: "source",
-                type: "text|url|imagebase"
+                type: "text|url|imagebase",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "<Image Url>"
+                    }
+                }
+            },
+            {
+                name: "Crop Position",
+                refName: "crop_position",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "100% 100px center 40%"
+                    }
+                },
+                isOmittable: true
             }
         ],
         return: {
             "html":{
                 value: (template, dat) => {
                     const imgVal = cardDataManage.getReturnValue('text|url|imagebase', dat, "source", "value");
+                    const cropVal = cardDataManage.getReturnValue('text', dat, "crop_position", "value") ?? null;
                     if (imgVal) {
                         const imgHtml = document.createElement('img');
                         imgHtml.src = imgVal;
                         imgHtml.style.marginTop = '2px';
                         imgHtml.style.borderRadius = '5px';
+                        if (cropVal) {
+                            const cropSplits = cropVal.split(' ');
+                            const cropWidth = cropSplits[0] ?? "100%";
+                            const cropHeight = cropSplits[1] ?? "auto"
+                            const cropCntX = cropSplits[2] ?? "center";
+                            const cropCntY = cropSplits[3] ?? "40%";
+                            imgHtml.style.objectFit = "cover";
+                            imgHtml.style.width = cropWidth;
+                            imgHtml.style.height = cropHeight;
+                            imgHtml.style.objectPosition = `${cropCntX} ${cropCntY}`;
+                        }
+
                         return imgHtml;
                     }
                     return null;

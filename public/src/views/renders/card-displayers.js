@@ -39,7 +39,7 @@ export function displayBoardCard(cardDataArray) {
     const boardUID = cardDataManage.getBlocks(cardDataArray, "uid")?.map(id => cardDataManage.getReturnValue("*", id, "uid", "value"))[0] ?? null;
     const boardTitle = cardDataManage.getBlocks(cardDataArray, "title")?.map(id => cardDataManage.getReturnValue("text", id, "title", "value"))[0] ?? "Unnamed Board";
     const boardSubcards = cardDataManage.getBlocks(cardDataArray, "subcards");
-    const boardSubcardVisible = boardSubcards?.map(id => cardDataManage.getReturnValue("text|boolean", id, "visible_outside", "value"))[0] ?? true;
+    var boardSubcardVisible = boardSubcards?.map(id => cardDataManage.getReturnValue("text|boolean", id, "visible_outside", "value"))[0] ?? true;
     if (boardSubcardVisible === "false") {
         boardSubcardVisible = false;
     }
@@ -109,12 +109,19 @@ export function displayBoardCard(cardDataArray) {
 export function isCardDisplayInEnv(cardDataArray, options = null) {
     var env = options?.env;
     var lapse = 0;
-    var curCards = [{uid: cardDataManage.getDataUID(cardDataArray), card:cardDataArray}];
+    var curCards = [{uid: cardDataManage.getDataUID(cardDataArray)?.trim(), card:cardDataArray, level: 0}];
     var canDisplay = true;
     var foundEnvParent = !env;
+    var envLevel = null;
     while (curCards.length > 0 && canDisplay) {
         const currentCard = curCards[0].card;
         if (lapse > 0) {
+            //Finding env card's level
+            if (env && !envLevel) {
+                envLevel = curCards.find(cc => cc.uid === env)?.level;
+                console.log("Found env: ", env, envLevel)
+            }
+
             //Env
             if (env && env === curCards[0].uid && !foundEnvParent) {
                 canDisplay = true;
@@ -126,40 +133,27 @@ export function isCardDisplayInEnv(cardDataArray, options = null) {
             if (!options?.bypass?.includes("parent-hiding")) {
                 const subcardBlocks = cardDataManage.getBlocks(currentCard, "subcards")?.map(sc => cardDataManage.getReturnValue("text", sc, "visible_outside", "value"))?.filter(v => cardDataManage.isMatter(v));
                 if (subcardBlocks && subcardBlocks.some(f => f === 'false' || f === false)) {
-                    canDisplay = false;
-                    break;
+                    if (!env || !envLevel || curCards[0].level < envLevel) {
+                        canDisplay = false;
+                        break;
+                    }
                 }
             }
         }
 
-        var parentUIDs = [cardDataManage.getBlocks(currentCard, "parent")?.map(p => {
+        var parentUIDs = hyperflatArray([cardDataManage.getBlocks(currentCard, "parent")?.map(p => {
             var result = cardDataManage.getReturnValue("set|text", p, "parent", "value");
             return result;
-        })];
-        var arrayIndex = parentUIDs.findIndex(p => Array.isArray(p));
-        while (arrayIndex > -1) {
-            const newChildren = parentUIDs[arrayIndex].map(c => {
-                if (!cardDataManage.isMatter(c))
-                    return null;
-                if (c.key) {
-                    return cardDataManage.getReturnValue("set|text", c, "*", "value");
-                }
-                else {
-                    return c;
-                }
-            });
-            parentUIDs.splice(arrayIndex, 1, ...newChildren);
-            arrayIndex = parentUIDs.findIndex(p => Array.isArray(p));
-        }
-        parentUIDs = parentUIDs.filter(p => cardDataManage.isMatter(p));
+        })], {excludedNulls: true, renderValues: true});
+        console.log("test uid------------------", parentUIDs);
 
         const newParent = [];
         if (parentUIDs.length > 0) {
             parentUIDs.forEach(pUID => {
                 for (var lc of localData.localCardData) {
-                    const uid = cardDataManage.getDataUID(lc) ?? null;
-                    if (uid && uid === pUID) {
-                        newParent.push({uid: uid, card:lc});
+                    const uid = cardDataManage.getDataUID(lc)?.trim() ?? null;
+                    if (uid && uid === pUID.trim()) {
+                        newParent.push({uid: uid, card:lc, level: curCards[0].level + 1});
                         break;
                     }
                 }

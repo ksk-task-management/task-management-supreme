@@ -29,7 +29,7 @@ export function hyperflatArray(data, options = null) {
   while (targetIdx >= 0) {
     const newChildren = [...pracArray[targetIdx]];
     if (renderValues) {
-      var valuableIdx = newChildren.findIndex(nc => nc.key && nc.value);
+      var valuableIdx = newChildren.findIndex(nc => cardDataManage.isMatter(nc) && nc.key && nc.value);
       while (valuableIdx >= 0) {
         const extractedVal = cardDataManage.getReturnValue("*", newChildren[valuableIdx], null, "value");
         const replacedChild = cardDataManage.isMatter(extractedVal) ? [extractedVal] : [];
