@@ -1,4 +1,4 @@
-import { setColorOpacity, generateShortId, setColorPart } from "../utils/helpers";
+import { setColorOpacity, generateShortId, setColorPart, hyperflatArray } from "../utils/helpers";
 import { createModalWindow } from "../views/modals";
 import * as cardEditor from "./card-editor";
 import * as cardDataObjectEditor from "./card-data-obj-editor";
@@ -26,6 +26,11 @@ export const majorCardTypes = [
     {
         type: "Board",
         icon: "content_paste",
+    },
+    {
+        type: "Division",
+        icon: "auto_awesome_mosaic",
+        requiredParent: true
     },
     {
         type: "Note",
@@ -763,6 +768,60 @@ export const elementTemplates = [
             }
         }
     },
+    {
+        key: ["qr-code"],
+        iocn: () => "qr_code",
+        value: [
+            {
+                name: "Content",
+                refName: "content",
+                type: "text"
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    const value = cardDataManage.getReturnValue("text", dat, "content", "value") ?? "<Empty Content>";
+                    const qrBlock = document.createElement('div');
+                    qrBlock.style.width = "100%";
+                    qrBlock.style.padding = "7px";
+                    qrBlock.style.marginTop = "2px";
+                    qrBlock.style.border = "#d6d6d6 1px solid";
+                    qrBlock.style.borderRadius = "5px";
+                    new QRCode(qrBlock, {
+                        text: value,
+                        colorDark: "#373737ff",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    //Url display text
+                    if (typeof value === 'string' && value.includes("://")) {
+                        const urlDisplay = elementTemplates.find(et => et.key.includes("url"))?.return.html.value(template, dat);
+                        if (urlDisplay) {
+                            qrBlock.appendChild(urlDisplay);
+                            urlDisplay.style.backgroundColor = "transparent";
+                            urlDisplay.style.border = "#d6d6d6 1px solid !important";
+                            urlDisplay.style.borderRadius = "5px";
+                        }
+                    }
+                    else {
+
+                    }
+                    /*const htmlDisplay = cardDataManage.getReturnValue("html", dat, "content", "value") ?? null;
+                    if (htmlDisplay) {
+                        qrBlock.appendChild(htmlDisplay);
+                    }
+                    else{
+
+                    }*/
+                    return qrBlock;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
     //DIVIDER / SEPARATOR น่าสนนะ แต่น่าจะไปรวมกับ Section ดีกว่า
     {
         key: ["url"],
@@ -777,7 +836,7 @@ export const elementTemplates = [
         return: {
             "html": {
                 value: (template, dat) => {
-                    const linkVal = cardDataManage.getReturnValue('text', dat, "link", "value");
+                    const linkVal = cardDataManage.getReturnValue('text', dat, "*", "value");
                     if (linkVal) {
                         const linkHtml = document.createElement('span');
                         linkHtml.classList.add('inline-value-display-url-area');
@@ -1138,7 +1197,8 @@ export const elementTemplates = [
             "cardtype": {
                 value: (template, dat) => dat.value,
                 editor: (template, dat) => {
-                    return cardDataObjectEditor.getEditor_Enum(majorCardTypes.map(t => {return {text: t.type, icon: t.icon, prefixIcon: t.icon};}), template, {target: dat, vp: "value"}, "circle", "arrow_drop_down_circle");
+                    const parentUIDs = hyperflatArray(cardDataManage.getBlocks(cardDataManage.getCardContainingData(dat), "parent")?.map(pt => cardDataManage.getReturnValue("text", pt, "parent", "value")), {renderValues: true, excludedNulls: true});
+                    return cardDataObjectEditor.getEditor_Enum(majorCardTypes.filter(ct => !ct.requiredParent || parentUIDs.length > 0).map(t => {return {text: t.type, icon: t.icon, prefixIcon: t.icon};}), template, {target: dat, vp: "value"}, "circle", "arrow_drop_down_circle");
                 },
                 represent: ["text"]
             }
