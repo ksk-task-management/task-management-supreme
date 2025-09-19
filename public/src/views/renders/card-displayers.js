@@ -1,7 +1,8 @@
 import * as cardDataManage from "../../items/card-data-manage";
-import { defaultCardStatus, getModalCardCreation } from "../../items/cards";
+import { defaultCardStatus } from "../../items/cards";
 import * as pages from "../pages";
 import * as localData from "../../databases/local-data";
+import * as viewCardEditor from "../editors/view-card-editor"
 import { hyperflatArray } from "../../utils/helpers";
 
 export function displayCard(cardDataArray) {
@@ -30,7 +31,7 @@ export function displayCard(cardDataArray) {
 
     //Default behaviour -> Click to open the card editor
     cardHtml.addEventListener('click', () => {
-        getModalCardCreation(cardDataArray);
+        viewCardEditor.getModalCardCreation(cardDataArray);
     });
     return cardHtml;
 }
@@ -97,25 +98,28 @@ export function displayBoardCard(cardDataArray) {
 
     //Subcard status one-dimensional displayer
     if (boardChildren.length > 0) {
-        const boardProgressAreaHtml = document.createElement('div');
-        boardProgressAreaHtml.classList.add('board-card-progress-line-area');
+       
         const progressPercents = boardChildren.map(child => {
             const childStatus = cardDataManage.getBlocks(child, "status")?.map(s => cardDataManage.getReturnValue("text", s, "status", "value"))[0] ?? null;
-            return defaultCardStatus.find(ds => ds.status === childStatus)?.progressPercent ?? 0;
-        });
-        progressPercents.forEach((percent, idx) => {
-            const eachPercentHtml = document.createElement('span');
-            eachPercentHtml.classList.add('board-card-progress-line-child');
-            if (idx === 0) {
-                eachPercentHtml.classList.add('start');
-            }
-            else if (idx === progressPercents.length - 1) {
-                eachPercentHtml.classList.add('end');
-            }
-            eachPercentHtml.style.setProperty("--data-percent", percent);
-            boardProgressAreaHtml.appendChild(eachPercentHtml);
-        });
-        lowerBoardAreaHtml.appendChild(boardProgressAreaHtml);
+            return defaultCardStatus.find(ds => ds.status === childStatus)?.progressPercent ?? null;
+        }).filter(f => f);
+        if (progressPercents.length >= 0) {
+            const boardProgressAreaHtml = document.createElement('div');
+            boardProgressAreaHtml.classList.add('board-card-progress-line-area');
+            progressPercents.forEach((percent, idx) => {
+                const eachPercentHtml = document.createElement('span');
+                eachPercentHtml.classList.add('board-card-progress-line-child');
+                if (idx === 0) {
+                    eachPercentHtml.classList.add('start');
+                }
+                else if (idx === progressPercents.length - 1) {
+                    eachPercentHtml.classList.add('end');
+                }
+                eachPercentHtml.style.setProperty("--data-percent", percent);
+                boardProgressAreaHtml.appendChild(eachPercentHtml);
+            });
+            lowerBoardAreaHtml.appendChild(boardProgressAreaHtml);
+        }
     }
 
 

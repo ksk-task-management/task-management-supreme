@@ -189,6 +189,7 @@ export function getDataUID(cardDataArray) {
 export function getBlocks(cardDataArray, keys) {
     var result = null;
     const pracKeys = Array.isArray(keys) ? keys : [keys];
+    const isByPassKeys = pracKeys.some(key => key.trim() === "*");
     const isObject = element => {
         return Object.prototype.toString.call(element) === '[object Object]' || (Array.isArray(element) && typeof element !== 'string');
     };
@@ -196,7 +197,7 @@ export function getBlocks(cardDataArray, keys) {
     cardDataArray.forEach(block => remainingData.push(block));
     while (remainingData.length > 0) {
         const firstData = remainingData.shift();
-        if (isObject(firstData) && firstData.key && pracKeys.includes(firstData.key)) {
+        if (isObject(firstData) && firstData.key && (isByPassKeys || pracKeys.includes(firstData.key))) {
             const template = elementTemplates.find(et => et.key.includes(firstData.key));
             if (template && template.return && template.return.block) {
                 if (!result) result = [];
@@ -479,3 +480,31 @@ export function isMatch(d1, d2) {
 export function isMatter(el) {
     return el !== undefined && el !== null;
 } 
+
+//Data Path System
+export class DataPath {
+    path = [];
+    constructor (path = []) {
+        this.path = path;
+    }
+
+    append(object) {
+        this.path.push(object);
+    }
+}
+
+export class PathObject {
+    type;
+    dataObject;
+    constructor (type, dataObject) {
+        this.type = type;
+        this.dataObject = dataObject;
+    }
+}
+
+export const pathType = {
+    cardArray: "cardDataArray",
+    block: "block",
+    blockValue: "block-value",
+    value: "value"
+}

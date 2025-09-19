@@ -2,7 +2,6 @@ import { btnLogin, btnLoginGotoRegister, btnLoginPasswordBlinder, btnLoginSwitch
 import { addUser, fetchUsers, googleWebBuildAPI, postCloudData } from "./databases/google-sheets";
 import { loadCloudDataToLocal } from "./databases/local-data";
 import { appendEvent } from "./events/events";
-import { getModalCardCreation } from "./items/cards";
 import { getModalSheetSetting } from "./views/modals";
 import { displayPage, toggleNotification } from "./views/pages";
 import { makeAction_ButtonSwitch } from "./views/view-actions";

@@ -1,7 +1,7 @@
 import { setColorOpacity, generateShortId, setColorPart, hyperflatArray } from "../utils/helpers";
 import { createModalWindow } from "../views/modals";
-import * as cardEditor from "./card-editor";
-import * as cardDataObjectEditor from "./card-data-obj-editor";
+import * as cardEditor from "../views/editors/card-editor";
+import * as cardDataObjectEditor from "../views/editors/card-data-obj-editor";
 import * as cardDataManage from "./card-data-manage";
 import * as localData from "../databases/local-data";
 import * as contextMenu from "../views/context-menu";
@@ -175,6 +175,7 @@ export const elementTemplates = [
     {
         key: ["type"],
         icon: () => "deployed_code",
+        isSingular: true,
         value: [
             {
                 name: "Type",
@@ -203,6 +204,7 @@ export const elementTemplates = [
     {
         key: ["uid"],
         icon: () => "data_object",
+        isSingular: true,
         value: [
             {
                 name: "Card UID",
@@ -298,6 +300,7 @@ export const elementTemplates = [
     {
         key: ["title"],
         icon: () => "title",
+        isSingular: true,
         value: [
             {
                 name: "Card Title",
@@ -1043,6 +1046,7 @@ export const elementTemplates = [
     {
         key: ['status'],
         icon: () => "circle",
+        isSingular: true,
         value: [
             {
                 name: "Card Status",
@@ -1440,21 +1444,3 @@ const cardStyleList = [
         valueType: "text"
     }
 ]
-
-export function getModalCardCreation(cardDataArray = null) {
-    const cardCreationWindowName = "Card Creation";
-    const modal = createModalWindow(cardCreationWindowName);
-    modal.classList.add("modal-card-creation");
-    modal.style.maxWidth = '80%';
-    modal.querySelector(".btn-modal-close").addEventListener('click', () => {
-        //console.log("Saving a card: ", JSON.stringify(cardDataArray), userData.sheetID);
-        localData.appendLocalCard(cardDataArray);
-        localData.uploadCard(cardDataArray);
-        forceRenderOpeningPage();
-    });
-
-    if (!cardDataArray) cardDataArray = [];
-    cardDataManage.validateData(cardDataArray);
-    cardEditor.renderExistingBlocks(modal, cardDataArray);
-    cardEditor.createInputCarret(modal, cardDataArray, "html");
-}

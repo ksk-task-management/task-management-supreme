@@ -1,7 +1,8 @@
-import * as inlineCommands from "./inline-commands";
-import * as contextMenu from "../views/context-menu";
-import * as cardDataManage from "./card-data-manage";
-import { elementTemplates } from "./cards";
+import * as inlineCommands from "../../items/inline-commands";
+import * as contextMenu from "../context-menu";
+import * as cardDataManage from "../../items/card-data-manage";
+import * as viewCardEditor from "./view-card-editor";
+import { elementTemplates } from "../../items/cards";
 
 export function renderExistingBlocks(parentHtml, dataArray) {
     if (!parentHtml || !dataArray || dataArray.length <= 0)
@@ -71,18 +72,8 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
         inputFieldHandlerHtml.classList.add("input-additive");
     }
 
-    //const placeholderChar = '\u200C';
     newInputField.addEventListener('input', ev => {
-        //const env = cardDataManage.getDataEnvironment(data);
         const currentInput = ev.target.value ?? ev.target.textContent;
-        /*console.log("Trying to input", ev.key);
-        if (ev.target.textContent === '') {
-            ev.target.textContent = "GGGGG";
-        }
-        else if (ev.target.textContent.includes(placeholderChar)) {
-            ev.target.textContent = ev.target.textContent.replace(placeholderChar, "");
-        }*/
-
         const matchedItems = [];
 
         if (valueType) {
@@ -161,10 +152,6 @@ export function checkInlineCaretVisibility(parentHtml, exceptionCount = 0) {
         if (!caret && currentEl.classList.contains("input-field-span-inline-handler")) {
             caret = currentEl;
         }
-
-        /*if (!caret && currentEl.classList.contains("block-insert-omit")){
-            caret = currentEl;
-        }*/
     })
     if (!caret || !caret.classList.contains('inline') || caret.classList.contains('input-additive')){
         caret.classList.remove('hidden');
@@ -285,6 +272,8 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                             cardDataManage.deleteData(parentData, objectDat, {...options});
                             newEditor.remove();
                             checkInlineCaretVisibility(parentHtml, 1);
+                            console.log("Removed", parentData, objectTemplate, valueType);
+                            viewCardEditor.renderEditorToolbar(parentHtml, parentData, "#", valueType, "block");
                         }
                     }
                 );

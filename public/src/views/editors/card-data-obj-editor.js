@@ -1,4 +1,4 @@
-import * as contextMenu from "../views/context-menu";
+import * as contextMenu from "../context-menu";
 
 export function getEditor_Enum(dataset, template, target, prefixIcon = null, suffixIcon = null) {
     const enumCardTypeArea = document.createElement('span');

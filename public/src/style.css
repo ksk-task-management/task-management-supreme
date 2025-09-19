@@ -607,7 +607,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    padding: 20px;
+    padding: 200px 20px;
     display: flex;
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
@@ -1049,8 +1049,6 @@ body {
 
 }
 
-
-
 .editor.value-editor {
     display: inline;
     width: fit-content;
@@ -1219,4 +1217,94 @@ body {
 
 .hidden {
     display: none !important;
+}
+
+/*Block Editor: KeyArea/Toolbar*/
+#universal-key-area {
+    position: absolute;
+    bottom: 20px;
+    background-color: white;
+    border: var(--color-gray-light) 1.5px solid;
+    border-radius: 20px;
+    padding: 7px;
+    width: 90%;
+    height: fit-content;
+    z-index: 999;
+}
+
+#universal-toolbar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    height: 45px;
+    border: rgb(214, 214, 214) 1px solid;
+    border-radius: 10px;
+    box-shadow: var(--shadow-min);
+    padding: 5px;
+}
+
+#toolbar-element-handler {
+    --knob-size: 30px;
+    --margin-horz: 4px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: calc(100% - var(--knob-size) * 2 - var(--margin-horz) * 2);
+    margin: 0px var(--margin-horz);
+    gap: 2px;
+    flex: 0 0 calc(100% - var(--knob-size) * 2 - var(--margin-horz) * 2);
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+}
+
+#toolbar-element-handler::-webkit-scrollbar {
+    display: none;
+}
+
+.btn-toolbar-card-editor {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: auto;
+    aspect-ratio: 1/1;
+    border: rgb(233, 233, 233) 1px solid;
+    border-radius: 5px;
+    padding: 0px 4px;
+}
+
+.btn-toolbar-card-editor:hover  {
+    background-color:#e5e4ff;
+    border: #6f00ff18 2px solid;
+}
+
+.btn-toolbar-card-editor:hover .icon {
+    color: var(--color-selected);
+    transform: translateY(-2px) rotate(6deg) scale(1.35);
+    text-shadow: 1px 2px 2px rgba(153, 0, 255, 0.3);
+}
+
+.btn-toolbar-card-editor .icon {
+    font-size: 23px;
+    font-weight: 500;
+    color: rgb(104, 99, 99);
+    text-shadow: var(--shadow-min);
+}
+
+.toolbar-knob {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    flex: 0 0 30px;
+    background-color: var(--color-gray-light);
+    border-radius: 5px;
+}
+
+.toolbar-knob .icon {
+    color: rgb(158, 158, 158);
+    font-weight: 900;
 }

@@ -2,7 +2,8 @@ import * as localData from "../../databases/local-data";
 import * as cardDataManage from "../../items/card-data-manage";
 import * as cardDisplay from "../../views/renders/card-displayers";
 import * as pages from "../pages";
-import { defaultCardStatus, elementTemplates, getModalCardCreation } from "../../items/cards";
+import * as viewCardEditor from "../editors/view-card-editor";
+import { defaultCardStatus, elementTemplates } from "../../items/cards";
 
 export const masonryContainer = document.getElementById('masonrylist-container');
 const gapSize = 5;
@@ -31,7 +32,7 @@ export function render(options = null) {
             const boardCardDataArray = localData.localCardData.find(lc => cardDataManage.getDataUID(lc) === options.env);
             if (!boardCardDataArray)
                 return;
-            getModalCardCreation(boardCardDataArray);
+            viewCardEditor.getModalCardCreation(boardCardDataArray);
         }
     }
     else {
@@ -49,7 +50,7 @@ export function render(options = null) {
             cardDataManage.appendData(newParentValue, cardDataManage.makeValue('text', options.env));
             cardDataManage.appendData(defaultBlocks, cardDataManage.makeValue(parentBlockTemplate.key[0], cardDataManage.makeBlock("parent", [newParentValue])));
         }
-        getModalCardCreation(defaultBlocks);
+        viewCardEditor.getModalCardCreation(defaultBlocks);
     }
 }
 
@@ -125,12 +126,19 @@ export function createColumn(width) {
     return masonryColumn;
 }
 
+const widthThreshold = 10;
+let lastWindowWidth = 0;
 export function onMasonryResized() {
+    const currentWidth = window.width;
+    if (Math.abs(lastWindowWidth - currentWidth) < widthThreshold) {
+        return;
+    }
+    lastWindowWidth = currentWidth;
     if (timeToRerenderFunction) {
         clearTimeout(timeToRerenderFunction);
     }
    timeToRerenderFunction = setTimeout(() => {
-    render();
+    pages.forceRenderOpeningPage();
    }, 350);
 }
 
