@@ -1412,6 +1412,9 @@ export const elementTemplates = [
                             const valueValueEditor = cardEditor.createEditor(styleAreaHtml, dat.value.styleValue.key, dat.value, valElementTemplate, dat.value.styleValue, {vp: "styleValue"});
                         }
                     }
+                   /* styleDomainAreaHtml.querySelector('.editor.input-text-minimum').addEventListener('resize', () => {
+                        console.log("Reesized!");
+                    })*/ //เดี๋ยวไป set ไว้กับการสร้าง domain editor ด้านบน เปลี่ยนให้เป็น options
                     const innerCaret = cardEditor.createInputCarret(styleAreaHtml, dat.value, "text", {inline: true, innerValueType: "text", vp: "styleValue"});
                     cardEditor.checkInlineCaretVisibility(styleAreaHtml);
 
@@ -1436,11 +1439,19 @@ const cardStyleList = [
     {
         styleName: "title-prefix",
         icon: "abc",
-        valueType: "text"
+        valueType: "text",
+        initialValue: () => "Prefix"
     },
     {
         styleName: "icon",
         icon: "nest_farsight_eco",
-        valueType: "text"
+        valueType: "text",
+        initialValue: () => "token"
+    },
+    {
+        styleName: "field-blurred",
+        icon: "blur_on",
+        valueType: "text",
+        initialValue: () => "revealable"
     }
 ]

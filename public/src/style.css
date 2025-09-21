@@ -873,6 +873,57 @@ body {
     border-bottom-right-radius: 5px;
 }
 
+/*Card stylings*/
+.masonry-card-blurred {
+    --blur-amount: 30px;
+    --border-color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(117, 117, 117, 0.4);
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount));
+    border: var(--border-color) 2px solid;
+    border-radius: inherit;
+    z-index: 99;
+    /*animation: blurReveal 1s ease-out backwards;*/
+}
+
+.masonry-card-blurred.reveal {
+    width: 0px !important;
+    height: 0px !important;
+    background-color: rgba(117, 117, 117, 0) !important;
+    border: none !important;
+    backdrop-filter: blur(0px) !important;
+    -webkit-backdrop-filter: blur(0px) !important;
+}
+
+/*@keyframes blurReveal {
+  0% {
+    background-color: rgba(117, 117, 117, 0.4);
+    backdrop-filter: blur(40px);
+  }
+  100% {
+    background-color: rgba(117, 117, 117, 0);
+    backdrop-filter: blur(0px);
+  }
+}*/
+
+.masonry-card-blurred.revealable:not(.reveal)::before {
+    content: "Click to reveal";
+    display: block;
+    color: white;
+    font-weight: bold;
+    font-size: calc(var(--primary-font-size) + 2px);
+    text-shadow: var(--shadow-med);
+}
+
 /*Card Management*/
 .modal-card-creation {
     width: 100% !important;

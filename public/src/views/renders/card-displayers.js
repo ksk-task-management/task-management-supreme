@@ -3,14 +3,57 @@ import { defaultCardStatus } from "../../items/cards";
 import * as pages from "../pages";
 import * as localData from "../../databases/local-data";
 import * as viewCardEditor from "../editors/view-card-editor"
-import { hyperflatArray } from "../../utils/helpers";
+import { hyperflatArray, setColorOpacity } from "../../utils/helpers";
 
 export function displayCard(cardDataArray) {
+    var cardHtml = null;
     const cardtype = cardDataManage.getBlocks(cardDataArray, "type")?.map(c => cardDataManage.getReturnValue("*", c, "type", "value"));
     if (cardtype && Array.isArray(cardtype) && cardtype.some(t => t === 'Board')) {
-        return displayBoardCard(cardDataArray);
+        //Board type
+        cardHtml = displayBoardCard(cardDataArray);
+    }
+    else {
+        //General type
+        cardHtml = displayGeneralCard(cardDataArray);
     }
 
+    if (cardHtml) {
+        //Custom Stylings
+        const customStylings = hyperflatArray(cardDataManage.getBlocks(cardDataArray, "card-styling")?.map(sb => cardDataManage.getReturnValue("*", sb, "styles", "value")) ?? null, {renderValues: true, excludedNulls: true})
+                                .filter(style => typeof style === 'string').map(style => {
+                                    const splits = style.split(":");
+                                    return {domain: splits[0].toLowerCase(), value: splits[1]}
+                                });
+        const blurStyle = customStylings.find(s => s.domain === 'field-blurred');
+        if (blurStyle) {
+            //Blurred
+            const newBlurredFilter = document.createElement('div');
+            newBlurredFilter.classList.add('masonry-card-blurred');
+            if (blurStyle.value.toLowerCase().trim() === "revealable") {
+                newBlurredFilter.classList.add('revealable');
+                newBlurredFilter.addEventListener('click', ev => {
+                    console.log('Click 1');
+                    if (!newBlurredFilter.classList.contains("reveal")) {
+                        newBlurredFilter.classList.add('reveal');
+                        ev.stopPropagation();
+                        console.log("Click2");
+                    }
+                });
+                cardHtml.addEventListener('mouseleave', ev => {
+                    if (newBlurredFilter.classList.contains("reveal")) {
+                        newBlurredFilter.classList.remove("reveal");
+                        ev.stopPropagation();
+                    }
+                });
+            }
+            cardHtml.appendChild(newBlurredFilter);
+        }
+    }
+
+    return cardHtml;
+}
+
+export function displayGeneralCard(cardDataArray) {
     //Card
     const cardHtml = document.createElement('div');
     cardHtml.classList.add('masonrylist-card');
