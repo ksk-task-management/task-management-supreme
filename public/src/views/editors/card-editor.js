@@ -273,7 +273,7 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                             newEditor.remove();
                             checkInlineCaretVisibility(parentHtml, 1);
                             console.log("Removed", parentData, objectTemplate, valueType);
-                            viewCardEditor.renderEditorToolbar(parentHtml, parentData, "#", valueType, "block");
+                            //viewCardEditor.renderEditorToolbar(parentHtml, parentData, "#", valueType, "block");
                         }
                     }
                 );
