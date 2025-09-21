@@ -1059,6 +1059,59 @@ body {
     color: var(--color-selected);
 }
 
+/*Editors: Card Editor View*/
+.view-card-editor-top-panel {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: fit-content;
+    margin-bottom: 4px;
+}
+
+.view-card-editor-top-subpanel {
+    display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: fit-content;
+    height: fit-content;
+    gap: 4px;
+}
+
+.btn-card-editor {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    height: fit-content;
+    background-color: var(--color-gray-light);
+    border-color: #6d686a 1px solid;
+    border-radius: 5px;
+    padding: 2px 8px;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.btn-card-editor:hover {
+    transform: translateY(-2px);
+}
+
+.btn-save {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    box-shadow: var(--shadow-min);
+}
+
+.btn-delete {
+    color: rgb(146, 146, 146);
+}
+
 /*Editors: Block Editor*/
 .editor {
     position: relative;

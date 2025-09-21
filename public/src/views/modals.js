@@ -9,25 +9,31 @@ import { createIconizedButton, createIconizedTextHeader, createTextDescription, 
 
 let currentModal = [];
 
-export function createModalWindow(title) {
+export function createModalWindow(title, options = null) {
+    const displayCloseButton = !options || options.displayCloseButton;
+
     const modalID = generateShortId();
     const newModalWindow = document.createElement('div');
     newModalWindow.classList.add('window-modal', 'panel', 'area-padding20', 'area-fit-lim-handheld-90');
     newModalWindow.style.minWidth = '30%';
     newModalWindow.style.paddingTop = '30px';
+    newModalWindow.dataset.modalID = modalID;
 
     //Title
     newModalWindow.appendChild(createTextHeader(title));
 
     //Close Button
-    const closeButton = document.createElement('button');
-    closeButton.classList.add('btn-modal-close', 'btn-normal', 'area-horizontal', 'area-center', 'placement-stick-top-right-5');
-    closeButton.addEventListener('click', () => closeModalByID(modalID));
-    const closeIcon = document.createElement('i');
-    closeIcon.classList.add('material-symbols-outlined', 'icon');
-    closeIcon.textContent = 'close';
-    closeButton.appendChild(closeIcon);
-    newModalWindow.appendChild(closeButton);
+    if (displayCloseButton) {
+        const closeButton = document.createElement('button');
+        closeButton.classList.add('btn-modal-close', 'btn-normal', 'area-horizontal', 'area-center', 'placement-stick-top-right-5');
+        closeButton.addEventListener('click', () => closeModalByID(modalID));
+        const closeIcon = document.createElement('i');
+        closeIcon.classList.add('material-symbols-outlined', 'icon');
+        closeIcon.textContent = 'close';
+        closeButton.appendChild(closeIcon);
+        newModalWindow.appendChild(closeButton);
+    }
+    
     const modalSaveEntry = {
         id: modalID,
         name: title,
@@ -43,7 +49,7 @@ function getModalByName(modalName) {
     return currentModal.find(modal => modal.name === modalName);
 }
 
-function closeModalByID(modalID) {
+export function closeModalByID(modalID) {
     const existModalIndex = currentModal.findLastIndex(modal => modal.id === modalID);
     if (existModalIndex < 0)
         return;

@@ -45,13 +45,34 @@ export function appendLocalCard(newCardDataArray) {
     }
 }
 
-export function uploadCard(cardDataArray) {
+export function deleteLocalCard(cardDataArray) {
+    if (localCardData) {
+        const targetUID = cardDataManage.getDataUID(cardDataArray);
+        const targetIdx = localCardData.findIndex(lcd => cardDataManage.getDataUID(lcd) === targetUID);
+        if (targetIdx >= 0) {
+            localCardData.splice(targetIdx, 1);
+        }
+    }
+}
+
+export function saveCloudCard(cardDataArray) {
     const cardID = cardDataManage.getDataUID(cardDataArray);
     appendEvent(`Saving the card ${cardID}`, async () => {
         const result = await postCloudData('saveCard', {
             sheetID: userData.sheetID,
             cardID: cardID,
             cardData: JSON.stringify(cardDataArray)
+        });
+        console.log(result);
+    });
+}
+
+export function deleteCloudCard(cardDataArray) {
+    const cardID = cardDataManage.getDataUID(cardDataArray);
+    appendEvent(`Deleting the card ${cardID}`, async () => {
+        const result = await postCloudData('deleteCard', {
+            sheetID: userData.sheetID,
+            cardID: cardID,
         });
         console.log(result);
     });

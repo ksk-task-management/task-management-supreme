@@ -1,7 +1,7 @@
 import { generateShortId } from "../utils/helpers";
 import { toggleNotification } from "../views/pages";
 
-export const googleWebBuildAPI = 'https://script.google.com/macros/s/AKfycbyw4Urv7H44nQlKdE3zxf72QU141Gc9cJUMofWJqNRW2VCXUaygJo7YP5uhR-f7c4Itvw/exec';
+export const googleWebBuildAPI = 'https://script.google.com/macros/s/AKfycbxEeNWDrUwm_ZTLr1gAdUlwkjNk9u6sq_iUWc6vwLN53H7NRyKbU5dzBu8OGLLI97ffOg/exec';
 
 async function getCloudData(action){
     const url = `${googleWebBuildAPI}?action=${action}`;

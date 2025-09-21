@@ -1118,7 +1118,7 @@ export const elementTemplates = [
                                             cardDataManage.appendData(exactValueToEdit, qb.setStatus ?? defaultCardStatus[0].status);
                                             const parentCard = cardDataManage.getCardContainingData(exactValueToEdit);
                                             if (parentCard)
-                                                localData.uploadCard(parentCard);
+                                                localData.saveCloudCard(parentCard);
                                             forceRenderOpeningPage();
                                         }
                                     });

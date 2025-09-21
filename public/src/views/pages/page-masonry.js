@@ -8,7 +8,7 @@ import { defaultCardStatus, elementTemplates } from "../../items/cards";
 export const masonryContainer = document.getElementById('masonrylist-container');
 const gapSize = 5;
 let timeToRerenderFunction = null;
-export function render(options = null) {
+export function render(pageObject, options = null) {
     if (!masonryContainer)
         return;
     masonryContainer.innerHTML = '';
@@ -32,7 +32,7 @@ export function render(options = null) {
             const boardCardDataArray = localData.localCardData.find(lc => cardDataManage.getDataUID(lc) === options.env);
             if (!boardCardDataArray)
                 return;
-            viewCardEditor.getModalCardCreation(boardCardDataArray);
+            viewCardEditor.getModalCardEditor(boardCardDataArray);
         }
     }
     else {
@@ -50,7 +50,19 @@ export function render(options = null) {
             cardDataManage.appendData(newParentValue, cardDataManage.makeValue('text', options.env));
             cardDataManage.appendData(defaultBlocks, cardDataManage.makeValue(parentBlockTemplate.key[0], cardDataManage.makeBlock("parent", [newParentValue])));
         }
-        viewCardEditor.getModalCardCreation(defaultBlocks);
+        viewCardEditor.getModalCardEditor(defaultBlocks);
+    }
+
+    //Scrolling adjustment
+    const pageMasonry = document.getElementById('page-cards-masonrylist');
+    if (pageMasonry && pageObject) {
+        if (pageObject.scrollPos) {
+            pageMasonry.scrollTop = pageObject.scrollPos;
+        }
+
+        pageMasonry.onscroll = () => {
+            pageObject.scrollPos = pageMasonry.scrollTop;
+        }
     }
 }
 

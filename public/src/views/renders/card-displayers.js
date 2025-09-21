@@ -74,7 +74,7 @@ export function displayGeneralCard(cardDataArray) {
 
     //Default behaviour -> Click to open the card editor
     cardHtml.addEventListener('click', () => {
-        viewCardEditor.getModalCardCreation(cardDataArray);
+        viewCardEditor.getModalCardEditor(cardDataArray);
     });
     return cardHtml;
 }

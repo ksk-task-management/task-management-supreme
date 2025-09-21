@@ -3,15 +3,83 @@ import * as cardDataManage from "../../items/card-data-manage";
 import * as localData from "../../databases/local-data";
 import { hyperflatArray } from "../../utils/helpers";
 import { elementTemplates } from "../../items/cards";
-import { createModalWindow } from "../modals";
+import { closeModalByID, createModalWindow } from "../modals";
 import { forceRenderOpeningPage } from "../pages";
 
-export function getModalCardCreation(cardDataArray = null) {
+export function getModalCardEditor(cardDataArray = null) {
     const cardCreationWindowName = "Card Creation";
-    const modal = createModalWindow(cardCreationWindowName);
+    const modal = createModalWindow(cardCreationWindowName, {displayCloseButton: false});
     modal.classList.add("modal-card-creation");
     modal.style.maxWidth = '85%';
-    modal.querySelector(".btn-modal-close").addEventListener('click', () => {
+
+    //Top Panels
+    const topPanelHtml = document.createElement('div');
+    topPanelHtml.classList.add("view-card-editor-top-panel");
+    modal.appendChild(topPanelHtml);
+
+    const leftPanelHtml = document.createElement('div');
+    leftPanelHtml.classList.add('view-card-editor-top-subpanel');
+    topPanelHtml.appendChild(leftPanelHtml);
+    
+    /*const txtDelete = document.createElement('span');
+    txtDelete.classList.add("txt");
+    txtDelete.textContent = "Delete";
+    btnDeleteCard.appendChild(txtDelete);*/
+
+    const rightPanelHtml = document.createElement('div');
+    rightPanelHtml.classList.add('view-card-editor-top-subpanel');
+    topPanelHtml.appendChild(rightPanelHtml);
+    //Save Button
+    const btnSaveCard = document.createElement('div');
+    btnSaveCard.classList.add("btn-card-editor", "btn-save");
+    rightPanelHtml.appendChild(btnSaveCard);
+   /* const icnSave = document.createElement('span');
+    icnSave.classList.add('icon', 'material-symbols-outlined');
+    icnSave.textContent = 'save';
+    btnSaveCard.appendChild(icnSave);*/
+    const txtSave = document.createElement('span');
+    txtSave.classList.add("txt");
+    txtSave.textContent = "Save this card";
+    btnSaveCard.appendChild(txtSave);
+    btnSaveCard.addEventListener('click', () => {
+        localData.appendLocalCard(cardDataArray);
+        localData.saveCloudCard(cardDataArray);
+        forceRenderOpeningPage();
+
+        /*if (editorToolbarHtml) {
+            editorToolbarHtml.remove();
+            editorToolbarHtml = null;
+        }
+
+        if (editorElementHandler) {
+            editorElementHandler.remove();
+            editorElementHandler = null;
+        }*/
+        const modalID = modal.dataset.modalID;
+        if (modalID) {
+            closeModalByID(modalID);
+        }
+    });
+    //Delete Button
+    const btnDeleteCard = document.createElement('div');
+    btnDeleteCard.classList.add("btn-card-editor", "btn-delete");
+    rightPanelHtml.appendChild(btnDeleteCard);
+    const icnDelete = document.createElement('span');
+    icnDelete.classList.add('icon', 'material-symbols-outlined');
+    icnDelete.textContent = 'delete_forever';
+    btnDeleteCard.appendChild(icnDelete);
+    btnDeleteCard.addEventListener('click', () => {
+        localData.deleteLocalCard(cardDataArray);
+        localData.deleteCloudCard(cardDataArray);
+        forceRenderOpeningPage();
+
+        const modalID = modal.dataset.modalID;
+        if (modalID) {
+            closeModalByID(modalID);
+        }
+    });
+
+    /*modal.querySelector(".btn-modal-close").addEventListener('click', () => {
         //console.log("Saving a card: ", JSON.stringify(cardDataArray), userData.sheetID);
         localData.appendLocalCard(cardDataArray);
         localData.uploadCard(cardDataArray);
@@ -26,7 +94,7 @@ export function getModalCardCreation(cardDataArray = null) {
             editorElementHandler.remove();
             editorElementHandler = null;
         }
-    });
+    });*/
 
     if (!cardDataArray) cardDataArray = [];
     cardDataManage.validateData(cardDataArray);

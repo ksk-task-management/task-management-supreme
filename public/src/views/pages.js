@@ -68,7 +68,7 @@ export function forceRenderOpeningPage() {
             openingPage.pageHtml.classList.remove('hidden');
         }
         if (openingPage.onRender) {
-            openingPage.onRender(openingPage.options);
+            openingPage.onRender(openingPage, openingPage.options);
         }
 
         console.log("Rendering page: ", openingPage);
