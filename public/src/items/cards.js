@@ -450,7 +450,13 @@ export const elementTemplates = [
             {
                 name: "Items",
                 refName: "items",
-                type: "set-*"
+                type: "set-*",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
             }
         ],
         return: {
@@ -494,7 +500,13 @@ export const elementTemplates = [
             {
                 name: "Items",
                 refName: "items",
-                type: "set-*"
+                type: "set-*",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
             }
         ],
         return: {
@@ -588,7 +600,13 @@ export const elementTemplates = [
             {
                 name: "Items",
                 refName: "items",
-                type: "set-*"
+                type: "set-*",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
             }
         ],
         return: {
@@ -888,7 +906,7 @@ export const elementTemplates = [
                 initialValue: () => {
                     return {
                         key: "text",
-                        value: "*Markdown*"
+                        value: "**Markdown Content**"
                     }
                 }
             }
@@ -924,7 +942,13 @@ export const elementTemplates = [
             {
                 name: "Content",
                 refName: "content",
-                type: "text"
+                type: "text",
+                initialValue: () => {
+                    return {
+                        type: "text",
+                        value: "url text"
+                    }
+                }
             }
         ],
         return: {
@@ -979,7 +1003,13 @@ export const elementTemplates = [
             {
                 name: "Link",
                 refName: "link",
-                type: "text"
+                type: "text",
+                initialValue: () => {
+                    return {
+                        type: "text",
+                        value: "url text"
+                    }
+                }
             }
         ],
         return: {
