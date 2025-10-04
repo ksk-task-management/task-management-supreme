@@ -878,6 +878,46 @@ export const elementTemplates = [
         }
     },
     {
+        key: ["markdown-block"],
+        icon: () => "markdown",
+        value: [
+            {
+                name: "Markdown",
+                refName: "markdown",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "*Markdown*"
+                    }
+                }
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    const markdownText = cardDataManage.getReturnValue('text', dat, "markdown", "value") ?? "";
+                    const markdownHtml = document.createElement('div');
+                    markdownHtml.classList.add('markdown-display');
+                    markdownHtml.innerHTML = marked.parse(markdownText);
+                    //Apply Prism to code blocks inside markdown
+                    const codeBlocks = markdownHtml.querySelectorAll('pre code');
+                    codeBlocks.forEach(block => {
+                        const language = block.className.match(/language-(\w+)/);
+                        if (language) {
+                            block.classList.add(`language-${language[1]}`);
+                            Prism.highlightElement(block);
+                        }
+                    });
+                    return markdownHtml;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
         key: ["qr-code"],
         icon: () => "qr_code",
         value: [
