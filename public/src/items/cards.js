@@ -1006,8 +1006,8 @@ export const elementTemplates = [
                 type: "text",
                 initialValue: () => {
                     return {
-                        type: "text",
-                        value: "url text"
+                        key: "text",
+                        value: "https://example.com"
                     }
                 }
             }
