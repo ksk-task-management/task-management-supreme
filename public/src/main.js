@@ -6,6 +6,7 @@ import { getModalSheetSetting } from "./views/modals";
 import { displayPage, toggleNotification } from "./views/pages";
 import { makeAction_ButtonSwitch } from "./views/view-actions";
 import * as pgMasonry from "./views/pages/page-masonry";
+import * as settings from "./views/editors/view-card-settings";
 import * as contextMenu from "./views/context-menu";
 
 export const userData = {
@@ -155,6 +156,10 @@ btnLogin.addEventListener('click', async () => {
             }
         }, "data_table");
     }, 'login');
+
+    appendEvent("Retieving the user's settings", async () => {
+        await settings.loadAllSettings();
+    }, "settings");
 });
 
 //Login - Go to Registration Page
@@ -269,7 +274,12 @@ btnRegisterCreateAccount.addEventListener('click', async () => {
     }, "id_card");
 });
 
-//Masonry Card List - Create Card (Apply universally to all the create-card buttons)
+//Masonry Card List - Settings
+document.querySelector('#btn-settings').addEventListener('click', () => {
+    settings.getModalSettings();
+});
+
+
 /*btnsCreateCard.forEach(button => {
     button.addEventListener('click', () => {
         getModalCardCreation();

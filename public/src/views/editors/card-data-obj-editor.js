@@ -1,3 +1,5 @@
+import { formatBytes } from "../../utils/helpers";
+import * as cardTemplate from "../../items/cards";
 import * as contextMenu from "../context-menu";
 
 export function getEditor_Enum(dataset, template, target, prefixIcon = null, suffixIcon = null) {
@@ -74,4 +76,39 @@ export function getEditor_Enum(dataset, template, target, prefixIcon = null, suf
         enumCardTypeArea.appendChild(enumSelIcon);
     }
     return enumCardTypeArea;
+}
+
+export function getDisplay_AttachedFile(fileValue) {
+    if (!fileValue) return undefined;
+    const fileAreaHtml = document.createElement('div');
+    const fileColor = cardTemplate.fileDataTemplateList.find(ft => ft.extension?.includes(fileValue.extension?.toLowerCase() ?? "<?>"))?.color ?? undefined;
+    const fileColorStyle = fileColor ? `background-color: ${fileColor};` : "";
+    fileAreaHtml.classList.add("display-block-file-strip");
+    fileAreaHtml.setAttribute('style', `${fileColorStyle}`);
+    fileAreaHtml.innerHTML =  
+    `<div class="display-block-file-panel">
+        <div class="display-block-file-thumbnail-holder">
+            <div class="display-block-file-thumbnail-area">
+                <img class="display-block-file-img-thumbnail" src="https://drive.google.com/thumbnail?id=${fileValue.id}"></img>
+            </div>
+            <span class="display-block-file-databubble fileext" style="${fileColorStyle}">${fileValue.extension}</span>
+        </div>
+        <div class="display-block-file-mainarea">
+            <div class="display-block-file-name">${fileValue.name}</div>
+            <div class="display-block-file-dataarea">
+                <span class="display-block-file-detailbubble">${formatBytes(fileValue.size)}</span>
+            </div>
+        </div>
+    </div>
+    `;
+
+    if (fileValue.url) {
+        fileAreaHtml.querySelector(".display-block-file-name")?.addEventListener('click', ev => {
+            window.open(fileValue.url, '_blank', 'noopener');
+            ev.preventDefault();
+            ev.stopPropagation();
+        });
+    }
+
+    return fileAreaHtml;
 }

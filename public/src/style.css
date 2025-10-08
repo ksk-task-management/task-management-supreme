@@ -9,7 +9,12 @@
     --color-selected: #6f03fc;
 
     --shadow-min: 1px 1px 2px rgba(0,0,0,0.1);
-     --shadow-med: 1px 2px 4px rgba(0,0,0,0.2);
+    --shadow-med: 1px 2px 4px rgba(0,0,0,0.2);
+    
+    --shadow-default: 1px 1px 4px rgba(0,0,0,0.2);
+    --shadow-inset-default: inset 0 2px 4px rgba(0,0,0,0.2);
+
+    --transition-time: 0.075s;
 }
 
 body {
@@ -65,6 +70,12 @@ body {
     font-size: 14px;
     line-height: 15px;
     color:#8e8e8e;
+}
+
+.txt-description {
+    font-size: 14px;
+    line-height: 18px;
+    color: rgb(120, 120, 120);
 }
 
 .txt-smaller {
@@ -165,6 +176,36 @@ body {
     margin-left: -2px;
     margin-right: 2px;
     display: inline;
+}
+
+/*Display: Image*/
+.display-block-img-container {
+    position: relative;
+    width: 100%;
+    height: fit-content;
+    margin-top: 2px;
+}
+
+.display-block-image {
+    border-radius: 5px;
+}
+
+.display-block-image-drop {
+    position: absolute;
+    display: block;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border-radius: 5px;
+    box-shadow: inset 0.5px 2.5px 4px rgba(0,0,0,0.32);
+}
+
+.display-block-image-btn-fullscreen {
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+    color: white;
 }
 
 /*Display: URL*/
@@ -355,6 +396,354 @@ body {
 .inline-value-editor-style-icon, .inline-value-editor-style-domain span {
     color: rgb(91, 82, 166) !important;
     font-weight: 700 !important;
+}
+
+/*File System - Attachment Block - Display*/
+.display-block-fileattachments-area {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 4px;
+    width: 100%;
+    background-color: rgb(233, 233, 233);
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+}
+
+/*File System - Display*/
+.display-block-file-strip {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-items: center;
+    gap: 30px;
+    background-color: rgba(80, 80, 80, 0.15);
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+    width: 100%;
+    height: auto;
+}
+
+.display-block-file-panel {
+    --panel-indent: 20px;
+    --thumbnail-size: 32px;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+    background-color: rgb(255, 255, 255);
+    border: rgb(220, 220, 220) 1px solid;
+    border-radius: 5px;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.1);
+    padding: 0px 4px;
+    margin-left: var(--panel-indent);
+    width: calc(100% - var(--panel-indent)) !important;
+    height: fit-content;
+}
+
+.display-block-file-thumbnail-holder {
+    position: relative;
+    width: var(--thumbnail-size);
+    height: var(--thumbnail-size);
+    flex: 0 0 var(--thumbnail-size);
+}
+
+.display-block-file-thumbnail-area {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+.display-block-file-img-thumbnail {
+    position: relative;
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+    height: 100%;
+    width: auto;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    object-position: center 0;
+}
+
+.display-block-file-thumbnail-area::after {
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0;
+    border-radius: 5px;
+    box-shadow: inset 1px 2.5px 4px rgb(0,0,0,0.3);
+    width: 100%;
+    height: 100%;
+}
+
+.display-block-file-databubble.fileext {
+    --position-offset: 10%;
+    position: absolute;
+    right: calc(var(--position-offset) * -1);
+    bottom: calc(var(--position-offset) / 2);
+    background-color: rgb(120, 120, 120);
+    border-radius: 5px;
+    color: white;
+    text-shadow: var(--shadow-min);
+    box-shadow: var(--shadow-min);
+    font-family: "Squada One", sans-serif;
+    font-size: 12px;
+    padding: 0 6px;
+}
+
+.display-block-file-mainarea {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - var(--panel-indent) - var(--thumbnail-size))!important;
+    max-width: 100% !important;
+    height: fit-content;
+    flex: 1 1 auto;
+}
+
+.display-block-file-name {
+    color: rgb(51, 48, 48);
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-weight: bold !important;
+    cursor: pointer;
+}
+
+.display-block-file-dataarea {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin-top: -4px;
+}
+
+.display-block-file-detailbubble {
+    font-size: 12px;
+    color: rgb(120, 120, 120);
+    font-weight: 500;
+}
+
+/*File System: Direct Editor Area*/
+.display-block-file-editorarea {
+    display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: nowrap;
+    align-items: top;
+    justify-items: top;
+    gap: 3px;
+    width: 100%;
+    height: fit-content;
+}
+
+.btn-file-editor {
+    --end-border-curve: 7px;
+    background-color: rgb(195, 195, 195);
+    border-bottom-left-radius: var(--end-border-curve);
+    border-bottom-right-radius: var(--end-border-curve);
+    color: rgb(99, 97, 97);
+    text-shadow: var(--shadow-inset-default);
+    box-shadow: inset 0 4px 4px rgb(0,0,0,0.15), var(--shadow-min);
+    font-size: 18px;
+    font-weight: 600;
+    padding: 1px 8px;
+    margin-right: 7px;
+    height: fit-content;
+    cursor: pointer;
+    transition: var(--transition-time);
+}
+
+.btn-file-editor:hover {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-med);
+    padding-top: 14px;
+    padding-bottom: 4px;
+}
+
+/*File System - Editor*/
+.inline-value-display-filebase-area {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-items: center;
+    gap: 30px;
+    background-color: rgba(80, 80, 80, 0.35);
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+    margin-left: 4px;
+    width: fit-content;
+    max-width: 100%;
+    cursor: pointer;
+}
+
+.inline-value-display-filebase-area::before {
+    font-family: "Squada One", sans-serif;
+    font-weight: 300;
+    display: inline-block;
+    content: attr(data-extension);
+    font-size: 14px;
+    color: rgb(255, 255, 255);
+    text-shadow: var(--shadow-min);
+    margin-left: 7px;
+}
+
+.inline-value-display-filebase-dataholder {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-items: center;
+    gap: 3px;
+    background-color: rgb(230, 230, 230);
+    border: rgb(193, 193, 193) 1px solid;
+    border-radius: 5px;
+    box-shadow: -2px 0px 2px rgba(0, 0, 0, 0.15);
+    padding: 0px 4px;
+    margin-left: 7px;
+}
+
+.inline-value-display-filebase-title:empty:before {
+    content: "No file selected";
+    color: rgb(156, 156, 156);
+}
+
+.inline-value-display-filebase-size {
+    font-size: 12px;
+    color: rgb(120, 120, 120);
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.inline-value-display-filebase-size::before {
+    content: " | ";
+    display: inline-block;
+    font-size: 12px;
+    color: rgb(191, 191, 191);
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.inline-value-display-filebase-btn-attach {
+    background-color: #bcbcbc;
+    border-radius: 5px;
+    color: rgb(99, 99, 99) !important;
+    box-shadow: var(--shadow-inset-default);
+    text-shadow: var(--shadow-min);
+    padding: 0px 4px;
+    margin-top: -1px;
+    margin-bottom: -1px;
+    margin-left: 4px;
+    cursor: pointer;
+}
+
+.inline-value-editor-filebase-modal-draganddrop {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(239, 239, 239);
+    border: rgb(213, 213, 213) dashed 2px;
+    border-radius: 5px;
+    color: rgb(213, 213, 213);
+    box-shadow: var(--shadow-inset-default);
+    font-size: 18px;
+    font-weight: bold;
+    width: 100%;
+    height: 100px;
+}
+
+.inline-value-editor-filebase-modal-lwtb {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: fit-content;
+    margin-top: 4px;
+}
+
+.inline-value-editor-filebase-modal-inputpaste {
+    flex: 1 1 auto;
+}
+
+.inline-value-editor-filebase-modal-btn-label-filesearch {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: rgb(220, 220, 220) 1px solid;
+    border-radius: 5px;
+    color: rgb(144, 144, 144);
+    box-shadow: var(--shadow-min);
+    font-weight: 600;
+    flex: 0 0 25px;
+}
+
+.inline-value-editor-filebase-modal-localfile-strip {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    background-color: #c6c6c6;
+    /*background-color: rgb(239, 12, 114);*/
+    border-radius: 11px;
+    box-shadow: inset 0 3px 4px rgb(0,0,0,0.3);
+    padding-right: 3px;
+}
+
+.inline-value-editor-filebase-modal-localfile-panel {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(231, 231, 231);
+    border: rgb(195, 195, 195) 1.5px solid;
+    border-radius: 7px;
+    padding: 4px;
+    box-shadow: var(--shadow-min);
+    flex: 1 1 auto;
+}
+
+.inline-value-editor-filebase-modal-localfile-name {
+    color: rgb(51, 48, 48);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 95%;
+}
+
+.inline-value-editor-filebase-modal-localfile-dataarea {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+}
+
+.inline-value-editor-filebase-modal-localfile-databubble {
+    background-color: rgb(215, 215, 215);
+    border-radius: 5px;
+    color: rgb(104, 104, 104);
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0px 4px;
+    box-shadow: var(--shadow-inset-default);
+}
+
+.inline-value-editor-filebase-modal-localfile-databubble.fileext {
+    font-family: "Squada One", sans-serif;
+}
+
+.inline-value-editor-filebase-modal-localfile-btn-remove {
+    color: rgb(130, 130, 130);
+    text-shadow: var(--shadow-inset-default);
+    font-size: 20px;
+    font-weight: bolder;
+    cursor: pointer;
 }
 
 /*Buttons*/
@@ -1411,4 +1800,181 @@ body {
 .toolbar-knob .icon {
     color: rgb(158, 158, 158);
     font-weight: 900;
+}
+
+/*Modal: Settings*/
+.modal-settings-area {
+    min-width: 100vh;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.modal-settings-side-tab-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    background-color: var(--color-gray-light);
+    padding: 7px 0px 7px 7px;
+    border-radius: 5px;
+    flex: 0 0 25%;
+}
+
+.modal-settings-txt-section {
+    font-size: 13px;
+    font-weight: bolder;
+    color: gray;
+}
+
+.modal-settings-btn-tab {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    gap: 4px;
+    background-color: transparent;
+    padding: 4px;
+    font-size: var(--primary-font-size);
+    font-weight: bold;
+    color: rgb(91, 91, 91);
+}
+
+.modal-settings-btn-tab.active {
+    background-color: white;
+    border-radius: 5px 0px 0px 5px;
+    color: var(--primary-color);
+}
+
+.modal-settings-content-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 5px;
+    padding: 7px;
+    width: 75%;
+    height: 100%;
+    flex: 1 1 75%;
+    overflow-y: auto;
+}
+
+.modal-settings-module {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: fit-content;
+}
+
+.modal-settings-txt-module-title {
+    color: gray;
+    font-weight: bold;
+}
+
+.modal-settings-folder-area {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-items: center;
+    gap: 4px;
+    padding: 4px;
+    background-color: #eeeeee;
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+    width: 100%;
+    overflow-x: auto;
+}
+
+.modal-settings-folder-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background-color: white;
+    border-radius: 5px;
+    color: rgb(91, 91, 91);
+    user-select: none;
+    box-shadow: var(--shadow-default);
+    height: 150px;
+    width: 100px;
+    flex: 0 0 100px;
+}
+
+.modal-settings-folder-item .icon{
+    color: gray;
+    background-color: #d3d3d3;
+    border: rgb(190, 190, 190) 1px solid;
+    border-radius: 50%;
+    padding: 15px;
+    box-shadow: var(--shadow-inset-default);
+}
+
+.modal-settings-folder-item-name {
+    font-size: 12px;
+    font-weight: bold;
+    width: 100%; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.modal-settings-folder-item-size {
+    font-size: 10px;
+    font-weight: bold;
+    width: 100%; 
+    white-space: nowrap;
+    text-align: center;
+}
+
+.modal-settings-folder-item-link {
+    font-size: 10px;
+    font-weight: bold;
+    text-decoration: underline;
+    color: #4b77c7;
+    width: 75%; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    margin-top: -2px;
+}
+
+.modal-settings-folder-item-actions {
+    display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: nowrap;
+    gap: 4px;
+}
+
+.modal-settings-folder-item-actions .icon {
+    font-size: var(--primary-font-size);
+    background-color: #e6e6e6;
+    border: none;
+    border-radius: 5px;
+    color: gray;
+    padding: 4px;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.modal-settings-folder-item.btn-folder-add {
+    background-color: #d2d2d2;
+    box-shadow: var(--shadow-inset-default);
+    color: rgb(132, 132, 132);
+    font-size: 14px;
+    font-weight: bolder;
+    text-shadow: var(--shadow-min);
+    cursor: pointer;
+}
+
+.input-txt-3d-groove {
+    background-color: #eeeeee;
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+    text-shadow: var(--shadow-min);
+    padding: 4px;
+    margin-bottom: 2px;
 }

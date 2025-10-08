@@ -8,6 +8,19 @@ export function generateShortId() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+/**
+         * Converts bytes to a human-readable string.
+         * @param {number} bytes 
+         * @returns {string}
+         */
+        export const formatBytes = (bytes) => {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'kB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        };
+
 export function isExceedingViewport(elementBound) {
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;

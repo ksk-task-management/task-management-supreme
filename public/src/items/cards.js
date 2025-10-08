@@ -1,14 +1,15 @@
-import { setColorOpacity, generateShortId, setColorPart, hyperflatArray } from "../utils/helpers";
-import { createModalWindow } from "../views/modals";
+import { setColorOpacity, generateShortId, setColorPart, hyperflatArray, formatBytes } from "../utils/helpers";
+import { closeModalByID, createModalWindow } from "../views/modals";
 import * as cardEditor from "../views/editors/card-editor";
 import * as cardDataObjectEditor from "../views/editors/card-data-obj-editor";
 import * as cardDataManage from "./card-data-manage";
 import * as localData from "../databases/local-data";
 import * as contextMenu from "../views/context-menu";
+import * as settings from "../views/editors/view-card-settings";
 import { userData } from "../main";
 import { appendEvent } from "../events/events";
 import { postCloudData } from "../databases/google-sheets";
-import { forceRenderOpeningPage } from "../views/pages";
+import { forceRenderOpeningPage, toggleNotification } from "../views/pages";
 
 export const majorCardTypes = [
     {
@@ -681,7 +682,7 @@ export const elementTemplates = [
             {
                 name: "Source",
                 refName: "source",
-                type: "text|url|imagebase",
+                type: "filebase|text",
                 initialValue: () => {
                     return {
                         key: "text",
@@ -705,13 +706,43 @@ export const elementTemplates = [
         return: {
             "html":{
                 value: (template, dat) => {
-                    const imgVal = cardDataManage.getReturnValue('text|url|imagebase', dat, "source", "value");
+                    //For GG-drive preview: https://drive.google.com/thumbnail?id=${fileId}&sz=w800
+                    let imgVal = cardDataManage.getReturnValue('filebase|text', dat, "source", "value");
+                    let fullScreenUrl = imgVal ?? undefined;
+                    if (imgVal.id && imgVal.url) {
+                        fullScreenUrl = imgVal.url;
+                        imgVal = `https://drive.google.com/thumbnail?id=${imgVal.id}`;
+                    }
+
                     const cropVal = cardDataManage.getReturnValue('text', dat, "crop_position", "value") ?? null;
                     if (imgVal) {
+                        const imgContainerHtml = document.createElement('div');
+                        imgContainerHtml.classList.add("display-block-img-container");
+
                         const imgHtml = document.createElement('img');
+                        imgHtml.classList.add("display-block-image");
+                        imgContainerHtml.appendChild(imgHtml);
+
+                        const imgDropEffect = document.createElement("div");
+                        imgDropEffect.classList.add("display-block-image-drop");
+                        imgContainerHtml.appendChild(imgDropEffect);
+                        
+                        if (fullScreenUrl) {
+                           /* const btnFullScreen = document.createElement('div');
+                            btnFullScreen.classList.add('icon', 'material-symbols-outlined', 'display-block-image-btn-fullscreen');
+                            btnFullScreen.textContent = "expand_content";
+                            imgContainerHtml.appendChild(btnFullScreen);*/
+                            imgContainerHtml.style.cursor = "pointer";
+                            imgContainerHtml.addEventListener('click', e => {
+                                window.open(fullScreenUrl, '_blank', 'noopener');
+                                e.stopPropagation();
+                                e.preventDefault();
+                            });
+                        }
+
                         imgHtml.src = imgVal;
-                        imgHtml.style.marginTop = '2px';
-                        imgHtml.style.borderRadius = '5px';
+                        //imgContainerHtml.style.marginTop = '2px';
+                        //imgContainerHtml.style.borderRadius = '5px';
                         if (cropVal) {
                             const cropSplits = cropVal.split(' ');
                             const cropWidth = cropSplits[0] ?? "100%";
@@ -723,8 +754,12 @@ export const elementTemplates = [
                             imgHtml.style.height = cropHeight;
                             imgHtml.style.objectPosition = `${cropCntX} ${cropCntY}`;
                         }
+                        else {
+                            imgHtml.style.width = "100%";
+                            imgHtml.style.height = "auto";
+                        }
 
-                        return imgHtml;
+                        return imgContainerHtml;
                     }
                     return null;
                 }
@@ -777,6 +812,42 @@ export const elementTemplates = [
                 }
             },
             "block":{
+            }
+        }
+    },
+    {
+        key: ["file-attachments"],
+        icon: () => "attach_file",
+        value: [
+            {
+                name: "File",
+                refName: "file",
+                type: "filebase|set-filebase"
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    let fileValues = cardDataManage.getReturnValue("filebase|set-filebase", dat, "*", "value") ?? [];
+                    fileValues = Array.isArray(fileValues) ? fileValues?.map(d => d.value ?? undefined).filter(d => cardDataManage.isMatter(d)) : [fileValues];
+                    console.log(fileValues);
+                    if (fileValues && fileValues.length > 0) {
+                        const fileRackHtml = document.createElement('div');
+                        fileRackHtml.classList.add('display-block-fileattachments-area');
+                        fileValues.forEach(fileValue => {
+                            if (cardDataManage.isMatter(fileValue) && fileValue && fileValue.id) {
+                                const fileStripHtml = cardDataObjectEditor.getDisplay_AttachedFile(fileValue);
+                                if (fileStripHtml) {
+                                    fileRackHtml.appendChild(fileStripHtml);
+                                }
+                            }
+                        });
+                        return fileRackHtml;
+                    }
+                }
+            },
+            "block": {
+
             }
         }
     },
@@ -1401,6 +1472,284 @@ export const elementTemplates = [
         }
     },
     {
+        key: ["filebase"],
+        icon: () => "attach_file",
+        return: {
+            "filebase": {
+                value: (template, dat) => dat.value,
+                editor: (template, dat) => {
+                    const fileAreaHtml = document.createElement('span');
+                    fileAreaHtml.classList.add('inline-value-display-filebase-area');
+
+                    //Extension
+                    const fileExtensionHtml = document.createElement('span');
+                    fileExtensionHtml.classList.add('inline-value-display-filebase-ext');
+                    fileAreaHtml.appendChild(fileExtensionHtml);
+
+                    //Main Data Area
+                    const fileDataHolderHtml = document.createElement('span');
+                    fileDataHolderHtml.classList.add('inline-value-display-filebase-dataholder');
+                    fileAreaHtml.appendChild(fileDataHolderHtml);
+
+                    const fileTitleHtml = document.createElement('span');
+                    fileTitleHtml.classList.add('inline-value-display-filebase-title');
+                    fileDataHolderHtml.appendChild(fileTitleHtml);
+
+                    const fileSizeHtml = document.createElement('span');
+                    fileSizeHtml.classList.add('inline-value-display-filebase-size');
+                    fileDataHolderHtml.appendChild(fileSizeHtml);
+
+                    //Edit Button
+                    const editButtonHtml = document.createElement('span');
+                    editButtonHtml.classList.add('icon', 'material-symbols-outlined', 'inline-value-display-filebase-btn-attach');
+                    editButtonHtml.textContent = "attach_file";
+                    fileDataHolderHtml.appendChild(editButtonHtml);
+
+                    const renderFileFunction = (fileDat) => {
+                        const fileColor = fileDataTemplateList.find(ft => ft.extension?.includes(fileDat?.extension?.toLowerCase() ?? "<?>"))?.color ?? undefined;
+                        const fileColorStyle = fileColor ? `background-color: ${fileColor};` : "";
+                        fileAreaHtml.setAttribute('style', `${fileColorStyle}`);
+                        fileAreaHtml.dataset.extension = fileDat?.extension.toUpperCase() ?? "?";
+                        fileTitleHtml.textContent = fileDat?.name ?? "";
+                        fileSizeHtml.textContent = fileDat?.size ? formatBytes(fileDat.size) : "-- Bytes";
+
+                        if (fileDat && fileDat.url) {
+                            fileTitleHtml.onclick = (e) => {
+                                window.open(fileDat.url, '_blank', 'noopener');
+                                e.stopPropagation();
+                                e.preventDefault();
+                            }
+                        }
+                    }
+                    renderFileFunction(dat.value);
+
+                    //File Attach Behavior
+                    editButtonHtml.addEventListener('click', ev => {
+                        ev.stopPropagation();
+                        const cloudFolderIDs = (settings.getSettingModule("ONLINE_STORAGE_FOLDER_ID") ?? []).map(f => f.folderID).join(", ");
+                        if (cloudFolderIDs.trim().length <= 0) {
+                            alert("No Cloud Storage Folder is set. Please set up a cloud storage folder first.");
+                            settings.getModalSettings();
+                            return;
+                        }
+                        
+                        const fileEditorModal = createModalWindow("File Attachment");
+
+                        //Drag Drop Attach Area
+                        const dragAndDropArea = document.createElement('div');
+                        dragAndDropArea.classList.add('inline-value-editor-filebase-modal-draganddrop');
+                        dragAndDropArea.textContent = "Drag and drop file here...";
+                        fileEditorModal.appendChild(dragAndDropArea);
+
+                        const lowerToolbarArea = document.createElement('div');
+                        lowerToolbarArea.classList.add('inline-value-editor-filebase-modal-lwtb');
+                        fileEditorModal.appendChild(lowerToolbarArea);
+
+                        //Input-paste field
+                        const filePasteInput = document.createElement('input');
+                        filePasteInput.classList.add("inline-value-editor-filebase-modal-inputpaste");
+                        filePasteInput.type = "text";
+                        filePasteInput.placeholder = ": Text/Image/Drive File ID....";
+                        lowerToolbarArea.appendChild(filePasteInput);
+
+                        //Input - Select File <Manually>
+                        const selFileLabel = document.createElement('label');
+                        selFileLabel.for = "input-file-select";
+                        selFileLabel.classList.add("inline-value-editor-filebase-modal-btn-label-filesearch");
+                        lowerToolbarArea.appendChild(selFileLabel);
+                        const icnFileAdd = document.createElement('span');
+                        icnFileAdd.classList.add("icon", "material-symbols-outlined");
+                        icnFileAdd.textContent = "add";
+                        selFileLabel.appendChild(icnFileAdd);
+
+                        //Button: Upload File
+                        let attachedLocalFile = undefined;
+                        const btnUploadFileHtml = document.createElement('button');
+                        btnUploadFileHtml.classList.add("btn-normal", "btn-primary", "area-fill-horizontal", "btn-stack", "hidden");
+                        btnUploadFileHtml.textContent = "Upload File";
+                        fileEditorModal.appendChild(btnUploadFileHtml);
+
+                        //Function: Render Local File
+                        //Pseudo-attached file
+                        let uploadedFileHtml = undefined;
+                        let uploadedFileEditorHtml = undefined;
+                        let attachedLocalFileHtml = undefined;
+                        const renderAttachedFileFunc = () => {
+                            uploadedFileHtml?.remove();
+                            uploadedFileEditorHtml?.remove();
+                            attachedLocalFileHtml?.remove();
+                            if (dat.value) {
+                                console.log("Have file uploaded", dat.value);
+                                uploadedFileHtml = cardDataObjectEditor.getDisplay_AttachedFile(dat.value);
+                                if (uploadedFileHtml) {
+                                    fileEditorModal.insertBefore(uploadedFileHtml, lowerToolbarArea);
+
+                                    //Editor Zone
+                                    uploadedFileEditorHtml = document.createElement('div');
+                                    uploadedFileEditorHtml.classList.add("display-block-file-editorarea");
+                                    fileEditorModal.insertBefore(uploadedFileEditorHtml, lowerToolbarArea);
+
+                                    //Button: Rename
+                                    if (dat.value.id) {
+                                        const btnFileRename = document.createElement('div');
+                                        btnFileRename.classList.add("icon", "material-symbols-outlined", "btn-file-editor");
+                                        btnFileRename.textContent = "edit";
+                                        uploadedFileEditorHtml.appendChild(btnFileRename);
+                                    }
+
+                                    //Button: Download
+                                    if (dat.value.downloadUrl) {
+                                        const btnFileDownload = document.createElement('div');
+                                        btnFileDownload.classList.add("icon", "material-symbols-outlined", "btn-file-editor");
+                                        btnFileDownload.textContent = "download";
+                                        uploadedFileEditorHtml.appendChild(btnFileDownload);
+                                        btnFileDownload.addEventListener('click', ev => {
+                                            window.open(dat.value.downloadUrl, '_blank', 'noopener');
+                                            ev.preventDefault();
+                                            ev.stopPropagation();
+                                        });
+                                    }
+
+                                    //Button: Delete
+                                    if (dat.value.id) {
+                                        const btnFileDelete = document.createElement('div');
+                                        btnFileDelete.classList.add("icon", "material-symbols-outlined", "btn-file-editor");
+                                        btnFileDelete.textContent = "delete_forever";
+                                        uploadedFileEditorHtml.appendChild(btnFileDelete);
+                                        btnFileDelete.addEventListener('click', ev => {
+                                            confirm(`Do you want to put ${dat.value.name} to the Google Drive trash? the file will be there but it will lose the linked reference, so we will not be able to find it again. Technically the file is lost from the system forever`);
+                                            appendEvent(`Deleting ${dat.value.name}`, async () => {
+                                                 const result = await postCloudData('deleteDriveFile', {fileID: dat.value.id});
+                                                toggleNotification(result.status, result.message);
+                                                if (result.status === 'success') {
+                                                    dat.value = undefined;
+                                                    renderAttachedFileFunc();
+                                                    renderFileFunction();
+                                                }
+                                                ev.preventDefault();
+                                                ev.stopPropagation();
+                                            });
+                                        });
+                                    }
+                                }
+
+                                dragAndDropArea.classList.add('hidden');
+                                lowerToolbarArea.classList.add('hidden');
+                                btnUploadFileHtml.classList.add('hidden');
+                                return;
+                            }
+
+                            if (attachedLocalFile) {
+                                const fileExtension = attachedLocalFile.name.split('.').pop().toUpperCase();
+                                attachedLocalFileHtml = document.createElement('div');
+                                attachedLocalFileHtml.classList.add("inline-value-editor-filebase-modal-localfile-strip");
+                                attachedLocalFileHtml.innerHTML =  
+                                `<div class="inline-value-editor-filebase-modal-localfile-panel">
+                                    <div class="inline-value-editor-filebase-modal-localfile-name">${attachedLocalFile.name}</div>
+                                    <div class="inline-value-editor-filebase-modal-localfile-dataarea">
+                                        <span class="inline-value-editor-filebase-modal-localfile-databubble fileext">${fileExtension}</span>
+                                        <span class="inline-value-editor-filebase-modal-localfile-databubble">${formatBytes(attachedLocalFile.size)}</span>
+                                        <span style="font-size: 13px; font-weight: bold; color: #ba1457ff">Unuploaded</span>
+                                    </div>
+                                </div>
+                                `;
+
+                                const btnLocalFileRemove = document.createElement('div');
+                                btnLocalFileRemove.classList.add('icon', 'material-symbols-outlined', 'inline-value-editor-filebase-modal-localfile-btn-remove');
+                                btnLocalFileRemove.textContent = 'close';
+                                attachedLocalFileHtml.appendChild(btnLocalFileRemove);
+                                btnLocalFileRemove.addEventListener('click', ev => {
+                                    attachedLocalFile = undefined;
+                                    ev.stopPropagation();
+                                    ev.preventDefault();
+                                    renderAttachedFileFunc();
+                                });
+
+                                fileEditorModal.insertBefore(attachedLocalFileHtml, lowerToolbarArea);
+                                dragAndDropArea.classList.add('hidden');
+                                lowerToolbarArea.classList.add('hidden');
+                                btnUploadFileHtml.classList.remove('hidden');
+                                return;
+                            }
+
+                            dragAndDropArea.classList.remove('hidden');
+                            lowerToolbarArea.classList.remove('hidden');
+                            btnUploadFileHtml.classList.add('hidden');
+                        }
+                        renderAttachedFileFunc();
+
+                        btnUploadFileHtml.addEventListener('click', ev => {
+                            if (!attachedLocalFile)
+                                return;
+                            const reader = new FileReader();
+                            reader.onload = async function(ev) {
+                                const fileDataUrl = ev.target.result;
+                                const fileExtension = attachedLocalFile.name.split('.').pop().toLowerCase();
+                                appendEvent("Uploading file...", async () => {
+                                    const uploadResult = await postCloudData('uploadDriveFile', {
+                                        folderIDs: cloudFolderIDs,
+                                        fileName: attachedLocalFile.name,
+                                        fileData: fileDataUrl,
+                                        mimeType: attachedLocalFile.type
+                                    });
+
+                                    if (uploadResult.status === 'success') {
+                                        const fileDat = {
+                                            name: uploadResult.data.fileName,
+                                            id: uploadResult.data.fileID,
+                                            url: uploadResult.data.fileUrl,
+                                            downloadUrl: uploadResult.data.fileDownloadUrl,
+                                            mimeType: uploadResult.data.fileMimeType,
+                                            size: uploadResult.data.fileSize,
+                                            extension: fileExtension
+                                        };
+                                        dat.value = fileDat;
+                                        renderFileFunction(fileDat);
+                                    }
+                                    renderAttachedFileFunc();
+                                    //closeModalByID(fileEditorModal.dataset.modalId);
+                                });
+                            };
+                            reader.readAsDataURL(attachedLocalFile);
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                        });
+
+                        //File Input
+                        const fileInput = document.createElement('input');
+                        fileInput.id = "input-file-select";
+                        fileInput.type = 'file';
+                        fileInput.multiple = false;
+                        fileInput.style.display = "none";
+                        fileInput.addEventListener('change', ev => {
+                            const file = ev.target.files[0];
+                            if (file) {
+                                attachedLocalFile = file;
+                                renderAttachedFileFunc();
+                                /**/
+                                //
+                            }
+                        });
+                        selFileLabel.appendChild(fileInput);
+                    });
+                    return fileAreaHtml;
+                },
+            },
+            "text": {
+                value: (template, dat) => {
+                    if (dat.value) {
+                        let result = dat.value.name;
+                        if (dat.value.size) {
+                            result += ` (${formatBytes(dat.value.size)})`;
+                        }
+                        return result;
+                    }
+                    return "No file selected";
+                }
+            }
+        }
+    },
+    {
         key: ["refer"],
         icon: () => {
             var result = "graph_";
@@ -1523,5 +1872,32 @@ const cardStyleList = [
         icon: "blur_on",
         valueType: "text",
         initialValue: () => "revealable"
+    }
+];
+
+export const fileDataTemplateList = [
+    {
+        extension: ["pdf"],
+        color: "#cc3876ff"
+    },
+    {
+        extension: ["doc", "docx", "docm", "dotx", "dotm", "dot"],
+        color: "#3d5fc4ff"
+    },
+    {
+        extension: ["xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm", "xls"],
+        color: "#0f915fff"
+    },
+    {
+        extension: ["xml", "csv"],
+        color: "#b15f36ff"
+    },
+    {
+        extension: ["jpg",  "jpeg", "png", "gif", "bmp", "tiff", "tif", "webp", "svg", "heic", "heif"],
+        color: "#e2ba1eff"
+    },
+    {
+        extension: ["txt", "goodnote"],
+        color: "#bbae8dff"
     }
 ]
