@@ -168,14 +168,13 @@ body {
     background-color: transparent;
 }
 
-.inline-value-editor-set span.value-object:not(:nth-last-child(2)):after {
+.inline-value-editor-set span.value-object:not(:nth-last-child(2))::after {
     content: ",";
     font-size: calc(var(--primary-font-size) + 2px);
     color: rgb(197, 197, 197);
-    display: inline;
+    display: inline-block;
     margin-left: -2px;
     margin-right: 2px;
-    display: inline;
 }
 
 /*Display: Image*/

@@ -1678,6 +1678,28 @@ export const elementTemplates = [
                         }
                         renderAttachedFileFunc();
 
+                        filePasteInput.addEventListener('keydown', ev => {
+                            ev.preventDefault();
+                            const items = (ev.clipboardData || ev.originalEvent.clipboardData).items;
+                            for (let i = 0; i < items.length; i++) {
+                                const item = items[i];
+                                if (item.type.indexOf('image') !== -1) {
+                                    const blob = item.getAsFile();
+                                    if (blob) {
+                                        const fileName = `pasted_image_${Date.now()}.png`;
+                                        const fileWithCustomName = new File([blob], fileName, {
+                                            type: blob.type,
+                                            lastModified: Date.now()
+                                        });
+                                        attachedLocalFile = fileWithCustomName;
+                                        renderAttachedFileFunc();
+                                        return;
+                                    }
+                                } 
+                            }
+                            ev.stopPropagation();
+                        });
+
                         btnUploadFileHtml.addEventListener('click', ev => {
                             if (!attachedLocalFile)
                                 return;
@@ -1726,8 +1748,6 @@ export const elementTemplates = [
                             if (file) {
                                 attachedLocalFile = file;
                                 renderAttachedFileFunc();
-                                /**/
-                                //
                             }
                         });
                         selFileLabel.appendChild(fileInput);
