@@ -745,6 +745,37 @@ body {
     cursor: pointer;
 }
 
+/*Panel - Display*/
+.display-block-panel {
+    display: block;
+    width: 100%;
+}
+
+/*Divider - Display - Horizontal*/
+.display-block-divider-horz-area {
+    --divider-text-color: rgb(195, 195, 195);
+    --divider-color: rgb(219, 219, 219);
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: fit-content;
+    margin: 4px 0;
+}
+
+.display-block-divider-horz-txt {
+    display: block;
+    color: var(--divider-text-color);
+    font-size: 12px;
+    font-weight: bolder;
+}
+
+.display-block-divider-horz-line {
+    border-bottom: var(--divider-color) 2px solid;
+    width: 100%;
+    height: 0px;
+}
+
 /*Buttons*/
 .btn-normal {
     color: rgb(95, 95, 95);

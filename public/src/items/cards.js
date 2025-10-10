@@ -1166,6 +1166,163 @@ export const elementTemplates = [
         }
     },
     {
+        key: ["panel"],
+        icon: () => "clarify",
+        value: [
+            {
+                name: "Content",
+                refName: "content",
+                type: "html|set-html",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "*", "value") ?? [];
+                    if (!Array.isArray(htmlArray))
+                        htmlArray = [htmlArray];
+                    console.log("Panel", htmlArray);
+                    const panelHtml = document.createElement('div');
+                    panelHtml.classList.add("display-block-panel");
+                    htmlArray?.forEach(el => {
+                        if (!(el instanceof HTMLElement)) {
+                            console.log("El: ", el, " ---> Resolving Blocks");
+                            el = cardDataManage.getReturnValue("html", el, null, "value")
+                        }
+
+                        console.log("El: ", el);
+                        if (el && el instanceof HTMLElement) {
+                            panelHtml.appendChild(el);
+                        }
+                    });
+                    return panelHtml;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
+        key: ["horizontal-divider"],
+        icon: () => "splitscreen_bottom",
+        value: [
+            {
+                name: "Below Text",
+                refName: "text_below",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "Below Text!"
+                    }
+                },
+                isOmittable: true
+            },
+            {
+                name: "Above Text",
+                refName: "text_above",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "Above Text!"
+                    }
+                },
+                isOmittable: true
+            },
+            {
+                name: "Line Style",
+                refName: "line_style",
+                type: "text",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "dashed"
+                    }
+                },
+                isOmittable: true
+            },
+            {
+                name: "Line Width",
+                refName: "line_width",
+                type: "text|number",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "2px"
+                    }
+                },
+                isOmittable: true
+            },
+            {
+                name: "Line Color",
+                refName: "line_color",
+                type: "text|color",
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "rgb(219, 219, 219)"
+                    }
+                },
+                isOmittable: true
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    const txtAbove = cardDataManage.getReturnValue("text", dat, "text_above", "value") ?? undefined;
+                    const txtBelow = cardDataManage.getReturnValue("text", dat, "text_below", "value") ?? undefined;
+                    const lineStyle = cardDataManage.getReturnValue("text", dat, "line_style", "value") ?? undefined;
+                    const lineWidth = cardDataManage.getReturnValue("text", dat, "line_width", "value") ?? undefined;
+                    const lineColor = cardDataManage.getReturnValue("text", dat, "line_color", "value") ?? undefined;
+
+                    const horzDividerHtml = document.createElement('div');
+                    horzDividerHtml.classList.add('display-block-divider-horz-area');
+                    if (txtAbove) {
+                        const txtAboveHtml = document.createElement('div');
+                        txtAboveHtml.classList.add('display-block-divider-horz-txt');
+                        txtAboveHtml.textContent = txtAbove;
+                        horzDividerHtml.appendChild(txtAboveHtml);
+                    }
+
+                    const horzLineHtml = document.createElement('div');
+                    horzLineHtml.classList.add("display-block-divider-horz-line");
+                    horzDividerHtml.appendChild(horzLineHtml);
+                    const lineStylings = [];
+                    if (lineStyle)
+                        lineStylings.push(`border-style: ${lineStyle}`);
+                    if (lineWidth)
+                        lineStylings.push(`border-width: ${lineWidth}`);
+                    if (lineColor)
+                        lineStylings.push(`border-color: ${lineColor}`);
+                    if (lineStylings.length > 0) {
+                        horzLineHtml.setAttribute('style', lineStylings.join("; "));
+                    }
+                    
+
+                    if (txtBelow) {
+                        const txtBelowHtml = document.createElement('div');
+                        txtBelowHtml.classList.add('display-block-divider-horz-txt');
+                        txtBelowHtml.textContent = txtBelow;
+                        horzDividerHtml.appendChild(txtBelowHtml);
+                    }
+
+                    return horzDividerHtml;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
         key: ["checklist"],
         icon: () => "checklist",
         return: {
@@ -1546,11 +1703,18 @@ export const elementTemplates = [
                         fileEditorModal.appendChild(lowerToolbarArea);
 
                         //Input-paste field
-                        const filePasteInput = document.createElement('input');
+                        const btnFilePaste = document.createElement('div');
+                        btnFilePaste.classList.add('inline-value-editor-filebase-modal-btn-label-filesearch');
+                        lowerToolbarArea.appendChild(btnFilePaste);
+                        const icnFilePaste = document.createElement('span');
+                        icnFilePaste.classList.add("icon", "material-symbols-outlined");
+                        icnFilePaste.textContent = "content_paste";
+                        btnFilePaste.appendChild(icnFilePaste);
+                        /*const filePasteInput = document.createElement('input');
                         filePasteInput.classList.add("inline-value-editor-filebase-modal-inputpaste");
                         filePasteInput.type = "text";
                         filePasteInput.placeholder = ": Text/Image/Drive File ID....";
-                        lowerToolbarArea.appendChild(filePasteInput);
+                        lowerToolbarArea.appendChild(filePasteInput);*/
 
                         //Input - Select File <Manually>
                         const selFileLabel = document.createElement('label');
@@ -1678,8 +1842,85 @@ export const elementTemplates = [
                         }
                         renderAttachedFileFunc();
 
-                        filePasteInput.addEventListener('keydown', ev => {
-                            ev.preventDefault();
+                        let pastedData = {
+                            type: null, // 'text' or 'image'
+                            content: null, // string for text / dataUrl for image
+                            mimeType: null // 'text/plain' or 'image/png' etc.
+                        };
+                        const convertPastedContentFunc = () => {
+                            if (pastedData) {
+
+                            }
+                        }
+                        btnFilePaste.addEventListener("click", async ev => {
+                            try {
+                                // Check if the API is supported
+                                if (!navigator.clipboard || !navigator.clipboard.read) {
+                                    throw new Error("Clipboard API not supported by this browser.");
+                                }
+
+                                const items = await navigator.clipboard.read();
+
+                                for (const item of items) {
+                                    // Check for image data first (e.g., image/png, image/jpeg)
+                                    const imageType = Array.from(item.types).find(type => type.startsWith('image/'));
+                                    if (imageType) {
+                                        const blob = await item.getType(imageType);
+                                        pastedData.mimeType = imageType;
+
+                                        // Convert Blob to Data URL asynchronously
+                                        pastedData.content = await new Promise((resolve, reject) => {
+                                            const reader = new FileReader();
+                                            reader.onload = (e) => resolve(e.target.result);
+                                            reader.onerror = reject;
+                                            reader.readAsDataURL(blob);
+                                        });
+
+                                        pastedData.type = 'image';
+                                        console.log("Pasted: ", pastedData);
+                                        //updateUI();
+                                        return; // Found image, stop processing
+                                    }
+
+                                    // Check for text data
+                                    if (item.types.includes('text/plain')) {
+                                        const blob = await item.getType('text/plain');
+                                        pastedData.content = await blob.text();
+                                        pastedData.mimeType = 'text/plain';
+
+                                        if (pastedData.content.trim().length > 0) {
+                                            pastedData.type = 'text';
+                                            console.log("Pasted: ", pastedData);
+                                            //updateUI();
+                                            return; // Found text, stop processing
+                                        }
+                                    }
+                                }
+
+                                // If loop completes without finding usable data
+                                pastedData.type = 'none';
+                                console.log("Pasted: ", pastedData);
+                                //updateUI();
+
+                            } catch (err) {
+                                console.error("Clipboard Read Error:", err);
+                                
+                                let message = '❌ Clipboard access failed. ';
+
+                                if (err.name === 'NotAllowedError' || (err.message && (err.message.includes('permission') || err.message.includes('denied')))) {
+                                    message = '❌ Permission Denied. Please grant clipboard read permission when prompted by the browser.';
+                                } else if (err.message && err.message.includes('supported')) {
+                                    message = '❌ Clipboard API not fully supported by this browser.';
+                                } else if (!window.isSecureContext) {
+                                    message = '❌ Cannot access clipboard directly. This feature requires a Secure Context (HTTPS).';
+                                } else {
+                                    message += 'Please check your browser settings.';
+                                }
+                                console.error(message);
+                            } 
+                        });
+
+                        /*filePasteInput.addEventListener('keydown', ev => {
                             const items = (ev.clipboardData || ev.originalEvent.clipboardData).items;
                             for (let i = 0; i < items.length; i++) {
                                 const item = items[i];
@@ -1698,7 +1939,9 @@ export const elementTemplates = [
                                 } 
                             }
                             ev.stopPropagation();
-                        });
+                            ev.preventDefault();
+
+                        });*/
 
                         btnUploadFileHtml.addEventListener('click', ev => {
                             if (!attachedLocalFile)
