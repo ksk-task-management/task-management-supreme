@@ -164,7 +164,10 @@ export function renderEditorToolbar(parentHtml, parentData, parentTemplate, appe
         btnNewElement.addEventListener('click', () => {
             const newBlock = cardDataManage.makeValue(block.key[0], cardDataManage.makeBlock(block.key[0], []));
             cardDataManage.appendData(parentData, newBlock);
-            const newEditor = cardEditor.createEditor(parentHtml, "html", parentData, block, newBlock);
+            const newEditor = cardEditor.createEditor(parentHtml, "html", parentData, block, newBlock, {
+                dataSlot: parentData,
+                dataSlotType: appendableType
+            });
             cardEditor.checkInlineCaretVisibility(parentHtml);
             renderEditorToolbar(parentHtml, parentData, parentTemplate, appendableType, dataPath);
         });

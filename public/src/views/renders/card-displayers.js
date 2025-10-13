@@ -32,11 +32,9 @@ export function displayCard(cardDataArray) {
             if (blurStyle.value.toLowerCase().trim() === "revealable") {
                 newBlurredFilter.classList.add('revealable');
                 newBlurredFilter.addEventListener('click', ev => {
-                    console.log('Click 1');
                     if (!newBlurredFilter.classList.contains("reveal")) {
                         newBlurredFilter.classList.add('reveal');
                         ev.stopPropagation();
-                        console.log("Click2");
                     }
                 });
                 cardHtml.addEventListener('mouseleave', ev => {
@@ -71,6 +69,9 @@ export function displayGeneralCard(cardDataArray) {
             cardBodyArea.appendChild(blockHtml);
         }
     });
+
+    //Bottom Toolbar
+
 
     //Default behaviour -> Click to open the card editor
     cardHtml.addEventListener('click', () => {

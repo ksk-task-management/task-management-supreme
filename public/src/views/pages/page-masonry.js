@@ -99,6 +99,17 @@ function renderCards(options = null) {
                 }
             }
         }
+
+        //Score Element on top of the "Task" card
+        const cardTopToolbar = document.createElement('div');
+        cardTopToolbar.classList.add('display-card-toolbar-top');
+        if (cardHtml.hasChildNodes()) {
+            cardHtml.insertBefore(cardTopToolbar, cardHtml.firstChild);
+        }
+        else {
+            cardHtml.appendChild(cardTopToolbar);
+        }
+
         totalCards.push({
             el: cardHtml,
             arrangement: score
@@ -119,7 +130,7 @@ function renderCards(options = null) {
             return;
         columnToPlace.appendChild(card.el);
         //Card wonkiness
-        card.el.style.transform = `rotate(${(Math.random() * 2 - 1) * 1}deg)`; //-0.5 to 0.5 degree
+        card.el.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.7}deg)`; //-0.25 to 0.25 degree
     });
 }
 

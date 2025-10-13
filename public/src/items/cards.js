@@ -674,6 +674,107 @@ export const elementTemplates = [
             }
         }
     },
+    {
+        key: ["horizontal-gallery-entry"],
+        icon: () => "flex_no_wrap",
+        value: [
+            {
+                name: "Items",
+                refName: "items",
+                type: "html|set-html"
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "*", "value") ?? [];
+                    if (!Array.isArray(htmlArray))
+                        htmlArray = [htmlArray];
+                    htmlArray = htmlArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value")).filter(el => cardDataManage.isMatter(el));
+                    const galleryHtml = document.createElement('div');
+                    galleryHtml.classList.add("display-block-list-gallery-horz");
+                    htmlArray.forEach(el => {
+                        if (!(el instanceof HTMLElement))
+                            return;
+                        const galleryItemHtml = document.createElement('div');
+                        galleryItemHtml.classList.add("display-block-list-gallery-horz-item");
+                        if (htmlArray.length > 1) 
+                            galleryItemHtml.classList.add("multiple");
+                        galleryHtml.appendChild(galleryItemHtml);
+
+                        el.style.border = ' rgb(197, 197, 197) 1.5px solid';
+                        el.style.borderRadius = "5px";
+                        galleryItemHtml.appendChild(el);
+                    });
+
+                    
+
+                    let currentIndex = 0;
+                    const galleryItemCount = htmlArray.length;
+                    if (galleryItemCount > 1) {
+                        const scrollButtonArea = document.createElement('div');
+                        scrollButtonArea.classList.add("display-block-list-gallery-horz-btn-area");
+                        galleryHtml.appendChild(scrollButtonArea);
+
+                        const scrollButtonBackHtml = document.createElement('div');
+                        scrollButtonBackHtml.classList.add('icon', 'material-symbols-outlined');
+                        scrollButtonBackHtml.textContent = 'arrow_left';
+                        scrollButtonBackHtml.addEventListener('click', ev => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            const itemCount = galleryHtml.children.length - 1;
+                            const prevIndex = (currentIndex - 1 + itemCount) % itemCount;
+                            const prevItem = galleryHtml.children[prevIndex];
+                            const targetScrollLeft = prevItem.offsetLeft;
+                            galleryHtml.scroll({
+                                left: targetScrollLeft,
+                                behavior: 'smooth'
+                            });
+                            currentIndex = prevIndex;
+                        });
+                        scrollButtonArea.appendChild(scrollButtonBackHtml);
+
+                        const scrollButtonForwardHtml = document.createElement('div');
+                        scrollButtonForwardHtml.classList.add('icon', 'material-symbols-outlined');
+                        scrollButtonForwardHtml.textContent = 'arrow_right';
+                        scrollButtonForwardHtml.addEventListener('click', ev => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            const itemCount = galleryHtml.children.length - 1;
+                            const nextIndex = (currentIndex + 1) % itemCount;
+                            const nextItem = galleryHtml.children[nextIndex];
+                            const targetScrollLeft = nextItem.offsetLeft;
+                            galleryHtml.scroll({
+                                left: targetScrollLeft,
+                                behavior: 'smooth'
+                            });
+                            currentIndex = nextIndex;
+                        });
+                        scrollButtonArea.appendChild(scrollButtonForwardHtml);
+                    }
+
+                    return galleryHtml;
+
+
+                    /*const panelHtml = document.createElement('div');
+                    panelHtml.classList.add("display-block-panel");
+                    htmlArray?.forEach(el => {
+                        if (!(el instanceof HTMLElement)) {
+                            el = cardDataManage.getReturnValue("html", el, null, "value")
+                        }
+
+                        if (el && el instanceof HTMLElement) {
+                            panelHtml.appendChild(el);
+                        }
+                    });*/
+                    //return panelHtml;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
     //Displays
     {
         key: ["image"],
@@ -925,31 +1026,13 @@ export const elementTemplates = [
                     }
                 },
                 isOmittable: true
-            }/*,
-            {
-                name: "Prism Theme Link",
-                refName: "prism_theme_link",
-                type: "text",
-                initialValue: () => {
-                    return {
-                        key: "text",
-                        value: "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css"
-                    }
-                },
-                isOmittable: true
-            }*/
+            }
         ],
         return: {
             "html": {
                 value: (templatem, dat) => {
                     const code = cardDataManage.getReturnValue('text', dat, "code", "value") ?? "Empty Code.";
                     const language = cardDataManage.getReturnValue('text', dat, "language", "value")?.toLowerCase() ?? "javascript";
-                    /*const theme = cardDataManage.getReturnValue('text', dat, "prism_theme_link", "value")?.toLowerCase() ?? "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css";
-
-                    const themeLink = document.getElementById('prism-theme');
-                    //const customizedTheme = `https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/${theme}`;
-                    themeLink.href = theme;*/
-
                     const newCodeBlockHtml = document.createElement("pre");
                     const codeElement = document.createElement("code");
                     codeElement.classList.add(`language-${language}`);
@@ -1187,16 +1270,16 @@ export const elementTemplates = [
                     let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "*", "value") ?? [];
                     if (!Array.isArray(htmlArray))
                         htmlArray = [htmlArray];
-                    console.log("Panel", htmlArray);
+                    //console.log("Panel", htmlArray);
                     const panelHtml = document.createElement('div');
                     panelHtml.classList.add("display-block-panel");
                     htmlArray?.forEach(el => {
                         if (!(el instanceof HTMLElement)) {
-                            console.log("El: ", el, " ---> Resolving Blocks");
+                            //console.log("El: ", el, " ---> Resolving Blocks");
                             el = cardDataManage.getReturnValue("html", el, null, "value")
                         }
 
-                        console.log("El: ", el);
+                        //console.log("El: ", el);
                         if (el && el instanceof HTMLElement) {
                             panelHtml.appendChild(el);
                         }
@@ -1572,7 +1655,10 @@ export const elementTemplates = [
                         dat.value.forEach((val, idx) => {
                             const valTemplate = elementTemplates.find(et => et.key.includes(val.key));
                             if (!valTemplate) return;
-                            const valEditor = cardEditor.createEditor(setFieldHtml, val.key, dat.value, valTemplate, val);
+                            const valEditor = cardEditor.createEditor(setFieldHtml, val.key, dat.value, valTemplate, val, {
+                                dataSlot: dat,
+                                dataSlotType: acceptedValueType
+                            });
                         });
                     }
                     const setValueInput = cardEditor.createInputCarret(setFieldHtml, dat.value, acceptedValueType, {
@@ -2091,7 +2177,11 @@ export const elementTemplates = [
                         const valElementTemplate = elementTemplates.find(f => f.key.includes(dat.value.styleValue.key));
                         if (valElementTemplate) {
                             //console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^", dat.value.styleValue, dat.value.styleValue.value, dat.value.styleValue.key)
-                            const valueValueEditor = cardEditor.createEditor(styleAreaHtml, dat.value.styleValue.key, dat.value, valElementTemplate, dat.value.styleValue, {vp: "styleValue"});
+                            const valueValueEditor = cardEditor.createEditor(styleAreaHtml, dat.value.styleValue.key, dat.value, valElementTemplate, dat.value.styleValue, {
+                                vp: "styleValue",
+                                dataSlot: dat,
+                                dataSlotType: "text"
+                            });
                         }
                     }
                    /* styleDomainAreaHtml.querySelector('.editor.input-text-minimum').addEventListener('resize', () => {

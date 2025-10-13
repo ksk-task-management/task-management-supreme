@@ -16,8 +16,6 @@ export function createMenu(callerHtml, menuItems, options = null) {
     const alignItems = options?.alignItems ?? false;
     const firstSelected = options?.firstSelected ?? true;
 
-   
-
     if (!activeMenu) {
         activeMenu = document.createElement('div');
         activeMenu.classList.add('editor', 'context-menu', 'glassmorphism');
@@ -27,6 +25,7 @@ export function createMenu(callerHtml, menuItems, options = null) {
                 activeMenu.style.visibility = 'hidden';
             }
         });
+        console.log('Create the menu', activeMenu);
          /*document.addEventListener('click', (ev) => {
             if (contextMenu && !contextMenu.contains(ev.target as Node) && contextMenu.style.visibility === 'visible') {
                 contextMenu.style.visibility = 'hidden';
@@ -39,13 +38,16 @@ export function createMenu(callerHtml, menuItems, options = null) {
     }
     
     if (!menuItems || menuItems.length <= 0) {
+        console.log("made menu hidden");
         activeMenu.style.visibility = 'hidden';
     }
     else {
+        console.log("Called the menu");
         activeMenu.style.visibility = 'visible';
         activeMenu.innerHTML = '';
-        menuItems = menuItems.sort((a, b) => (b.score || 0) - (a.score || 0)).splice(0, 7);
+        menuItems = menuItems.sort((a, b) => (b.score || 0) - (a.score || 0));
         menuItems.forEach((item, index) => {
+            console.log("I ", item);
             const newItem = document.createElement('div');
             newItem.classList.add('area-horizontal', 'area-fit-horizontal', 'editor', 'btn-context-menu-item');
             if (forcedWidth) newItem.style.width = forcedWidth;
@@ -104,7 +106,9 @@ export function createMenu(callerHtml, menuItems, options = null) {
                             editableContent.textContent = '';
                         }
                     }
-                    closeMenu();
+
+                    if (item.closeMenuAfterClicked !== false)
+                        closeMenu();
                     ev.stopPropagation();
                 });
             }
@@ -112,6 +116,7 @@ export function createMenu(callerHtml, menuItems, options = null) {
             activeMenu.appendChild(newItem);
         });
     }
+    console.log(activeMenu);
     activeMenu.dataset.currentSelected = 0;
     adjustMenuPosition(callerHtml);
     return activeMenu;

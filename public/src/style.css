@@ -776,6 +776,93 @@ body {
     height: 0px;
 }
 
+/*List - Gallery - Horizontal - Display*/
+.display-block-list-gallery-horz {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    height: fit-content;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 4px;
+    scroll-padding-right: 4px;
+    scroll-behavior: smooth;
+    overscroll-behavior-inline: none !important;
+    overscroll-behavior: contain !important; 
+    margin-top: 4px;
+    padding: 4px;
+    background-color: rgb(240, 240, 240);
+    border-radius: 5px;
+    /*border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);*/
+}
+
+.display-block-list-gallery-horz-item {
+    display: block;
+    width: 100%;
+    height: fit-content;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+}
+
+.display-block-list-gallery-horz-item.multiple {
+    width: 92%;
+    flex: 0 0 92%;
+}
+
+.display-block-list-gallery-horz-btn-area {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    gap: 2px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: fit-content !important;
+    height: fit-content;
+}
+
+.display-block-list-gallery-horz-btn-area .icon {
+    --extent-color: #c5c3c3;
+    display: flex;
+    flex-direction: row;
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    border: var(--extent-color) 1px solid;
+    border-radius: 5px;
+    color: var(--extent-color);
+    box-shadow: var(--shadow-min);
+    width: fit-content;
+    padding: -2px;
+    flex: 0 0 var(--btn-size);
+    cursor: pointer;
+}
+
+.display-block-list-gallery-horz::-webkit-scrollbar {
+    display: none;
+    height: 6px; 
+}
+
+/*.display-block-list-gallery-horz::-webkit-scrollbar-track {
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+}
+
+.display-block-list-gallery-horz::-webkit-scrollbar-thumb {
+    background: #c4c4c4; 
+    border-radius: 5px; 
+    box-shadow: var(--shadow-min);
+}
+
+.display-block-list-gallery-horz::-webkit-scrollbar-thumb:hover {
+    background: #9c9c9c;
+    box-shadow: var(--shadow-med);
+}*/
+
 /*Buttons*/
 .btn-normal {
     color: rgb(95, 95, 95);
@@ -1419,6 +1506,7 @@ body {
     flex-direction: column;
     width: fit-content;
     height: fit-content;
+    max-height: 20vh;
     padding: 7px;
     /*background-color: white;
     border: #8e8e8e solid 1px;*/
@@ -1427,6 +1515,12 @@ body {
     left: 0px;
     bottom: calc(100% + 4px);
     z-index: 999;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.editor.context-menu::-webkit-scrollbar {
+    width: 20px;
 }
 
 .editor.context-menu.horizontal {

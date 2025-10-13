@@ -11,7 +11,10 @@ export function renderExistingBlocks(parentHtml, dataArray) {
     dataArray.forEach(blockdat => {
         const elementTemplate = elementTemplates.find(et => et.key.includes(blockdat.key));
         //console.log("T-1# >>Creating Edtor For: ", blockdat);
-        createEditor(parentHtml, "html", dataArray, elementTemplate, cardDataManage.makeValue(blockdat.key, blockdat));
+        createEditor(parentHtml, "html", dataArray, elementTemplate, cardDataManage.makeValue(blockdat.key, blockdat), {
+            dataSlot: dataArray,
+            dataSlotType: "html"
+        });
     });
 }
 
@@ -117,7 +120,10 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
                                     }
                                 }
                             
-                                const newBlockEditor = createEditor(parentHtml, valueType, data, et, newValueDat);
+                                const newBlockEditor = createEditor(parentHtml, valueType, data, et, newValueDat, {
+                                    dataSlot: data,
+                                    dataSlotType: valueType
+                                });
 
                                 //if (!isAdditive) {
                                     //Handle inline caret behaviour
@@ -217,29 +223,6 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                 //Array Editors
                 if (parentData && Array.isArray(parentData)) {
                     const currentIdx = parentData.findIndex(c => cardDataManage.isMatch(c, objectDat));
-                    if (currentIdx > 0) {
-                        menuItems.push(
-                            {
-                                icon: "north",
-                                onClick: () => {
-                                    const targetIdx = currentIdx - 1;
-                                    const targetElement = parentData[targetIdx];
-                                    var pracVal = objectDat;
-                                    if (cardDataManage.isBlock(targetElement) && !cardDataManage.isBlock(pracVal) && pracVal.value && cardDataManage.isBlock(pracVal.value)) {
-                                        pracVal = pracVal.value;
-                                    }
-                                    parentData[targetIdx] = pracVal;
-                                    parentData[currentIdx] = targetElement;
-                                    const testIndex = Array.from(parentHtml.children).indexOf(newEditor);
-                                    if (testIndex > -1) {
-                                       const target = parentHtml.children[testIndex - 1];
-                                       parentHtml.insertBefore(newEditor, target);
-                                    }
-                                }
-                            }
-                        )
-                    }
-
                     if (currentIdx < parentData.length - 1) {
                         menuItems.push(
                             {
@@ -262,7 +245,81 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                             }
                         )
                     }
+
+                    if (currentIdx > 0) {
+                        menuItems.push(
+                            {
+                                icon: "north",
+                                onClick: () => {
+                                    const targetIdx = currentIdx - 1;
+                                    const targetElement = parentData[targetIdx];
+                                    var pracVal = objectDat;
+                                    if (cardDataManage.isBlock(targetElement) && !cardDataManage.isBlock(pracVal) && pracVal.value && cardDataManage.isBlock(pracVal.value)) {
+                                        pracVal = pracVal.value;
+                                    }
+                                    parentData[targetIdx] = pracVal;
+                                    parentData[currentIdx] = targetElement;
+                                    const testIndex = Array.from(parentHtml.children).indexOf(newEditor);
+                                    if (testIndex > -1) {
+                                       const target = parentHtml.children[testIndex - 1];
+                                       parentHtml.insertBefore(newEditor, target);
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
+
+                //Parenting System - Unparent (ยังไม่มีเคสต้องทำ)
+                /*if (options && options.dataSlot && options.dataSlotType && objectTemplate && objectDat.value && objectDat.value.key && cardDataManage.isMatter(objectDat.value)) {
+                    const dataValTemplate = elementTemplates.find(et => et.key.includes(objectDat.value.key));
+                    if (dataValTemplate && cardDataManage.checkValueReturnSatisfaction(dataValTemplate, options.dataSlotType)?.length > 0) {
+                        console.log("Able to unparent", options.dataSlotType, "<--", dataValTemplate.key);
+                    }
+                }*/
+                //Parenting System - Wrap
+                console.log("Clicking Wrap: ", objectDat, objectTemplate, options.dataSlot, options.dataSlotType, parentData);
+                if (options && options.dataSlot && options.dataSlotType && objectDat && objectTemplate) {
+                    console.log("Test wrapping: ", options.dataSlotType, parentData);
+                    const appendableElements = elementTemplates.filter(et => cardDataManage.checkValueReturnSatisfaction(et, options.dataSlotType)?.length > 0).map(et => {
+                        const appendableValueTemplate = [];
+                        et.value?.forEach(etv => {
+                            if (etv.type && cardDataManage.checkValueReturnSatisfaction(objectTemplate, etv.type)?.length > 0) {
+                                appendableValueTemplate.push(etv.refName);
+                            }
+                        });
+                        return {
+                            elementKey: et.key,
+                            elementIcon: et.icon(),
+                            appendableValue: appendableValueTemplate
+                        }
+                    }).filter(met => met.appendableValue.length > 0);
+                    if (appendableElements.length > 0) {
+                        menuItems.push({
+                            icon: 'zoom_in_map',
+                            closeMenuAfterClicked: false,
+                            onClick: () => {
+                                const wrapChoices = appendableElements.map(met => {
+                                    return {
+                                        icon: met.elementIcon,
+                                        text: met.elementKey.join('/')
+                                    }
+                                });
+                                const menu = contextMenu.createMenu(newEditor, wrapChoices, {
+                                    firstSelected: false
+                                });
+                                const callerBound = newEditor.getBoundingClientRect();
+                                const menuBound = menu.getBoundingClientRect();
+                                const newLeft = Math.max(callerBound.left, Math.min(ev.clientX, callerBound.left + callerBound.width - menuBound.width));
+                                const newTop = callerBound.top;
+                                contextMenu.adjustCustomPosition(newEditor, newLeft, newTop, callerBound.width, callerBound.height);
+                            }
+                        });
+                    }
+                    console.log("Can be warp with: ", appendableElements);
+                }
+
+
                 //Universal
                 menuItems.push(
                     {
@@ -448,7 +505,10 @@ export function createValueEditor(parentHtml, valueTemplate, valueDat) {
     //Value
     if (valElementTemplate) {
         //Value > Value Editor
-        const valueValueEditor = createEditor(newValueEditor, valueTemplate.type, valueDat, valElementTemplate, valueDat.value);
+        const valueValueEditor = createEditor(newValueEditor, valueTemplate.type, valueDat, valElementTemplate, valueDat.value, {
+            dataSlot: valueDat,
+            dataSlotType: valElementTemplate.type
+        });
     }
     //Value > Caret to select inner values
     const innerCaret = createInputCarret(newValueEditor, valueDat, valueTemplate.type, {inline: true, innerValueType: valueTemplate.type});
