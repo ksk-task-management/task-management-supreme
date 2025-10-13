@@ -815,9 +815,9 @@ body {
 
 .display-block-list-gallery-horz-btn-area {
     position: fixed;
-    right: 10px;
-    bottom: 10px;
-    gap: 2px;
+    right: 15px;
+    bottom: 15px;
+    gap: 4px;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -837,7 +837,7 @@ body {
     color: var(--extent-color);
     box-shadow: var(--shadow-min);
     width: fit-content;
-    padding: -2px;
+    padding: 2px;
     flex: 0 0 var(--btn-size);
     cursor: pointer;
 }
