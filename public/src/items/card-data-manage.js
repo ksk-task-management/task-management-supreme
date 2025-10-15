@@ -222,6 +222,53 @@ export function getBlocks(cardDataArray, keys) {
     return result;
 }
 
+export function getDataReference(cardDataArray, someData, returnType = "value") {
+    /*const pracKeys = Array.isArray(keys) ? keys : [keys];
+    const isByPassKeys = pracKeys.some(key => key.trim() === "*");*/
+    const isObject = element => {
+        return Object.prototype.toString.call(element) === '[object Object]' || (Array.isArray(element) && typeof element !== 'string');
+    };
+    const remainingData = [];
+    cardDataArray.forEach(block => remainingData.push({
+        parent: cardDataArray,
+        value: block
+    }));
+    while (remainingData.length > 0) {
+        const firstData = remainingData.shift();
+        if (isObject(firstData.value) && firstData.value === someData) {
+            if (returnType === 'value') {
+                return firstData.value;
+            }
+            else if (returnType === 'parent') {
+                return firstData.parent;
+            }
+            else if (returnType === '$') 
+                return firstData;
+        }
+        if (Array.isArray(firstData.value) && typeof firstData.value !== 'string') {
+            firstData.value.forEach(child => {
+                if (isObject(child)) {
+                    remainingData.unshift({
+                        parent: firstData.value,
+                        value: child
+                    });
+                }
+            });
+        }
+        else if (Object.prototype.toString.call(firstData.value) === '[object Object]') {
+            Object.keys(firstData.value).forEach(key => {
+                const child = firstData.value[key];
+                if (isObject(child))
+                    remainingData.unshift({
+                        parent: firstData.value,
+                        value: child
+                    });
+            });
+        }
+    }
+    return null;
+}
+
 export function getReturnValue(valueType, objectDat, valueChannelRefName, valueMode, options = null) {
     if (!valueType || !valueMode || !objectDat)
         return null;

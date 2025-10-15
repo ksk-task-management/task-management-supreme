@@ -64,7 +64,9 @@ export function displayGeneralCard(cardDataArray) {
     cardHtml.appendChild(cardBodyArea);
     cardDataArray.forEach(blockDat => {
         //console.log("--Begin Examind Block:", blockDat);
-        const blockHtml = cardDataManage.getReturnValue("html", blockDat, null, "value");
+        const blockHtml = cardDataManage.getReturnValue("html", blockDat, null, "value", {
+            parentData: cardDataArray
+        });
         if (blockHtml && typeof blockHtml === 'object') {
             cardBodyArea.appendChild(blockHtml);
         }

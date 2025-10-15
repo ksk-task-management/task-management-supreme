@@ -6,7 +6,10 @@ import { elementTemplates } from "../../items/cards";
 import { closeModalByID, createModalWindow } from "../modals";
 import { forceRenderOpeningPage } from "../pages";
 
-export function getModalCardEditor(cardDataArray = null) {
+export function getModalCardEditor(cardDataArray = null, options = null) {
+    const isValidateData = !options || options.bypassValidation !== true;
+    const isValueArray = options?.isValueArray === true;
+
     const cardCreationWindowName = "Card Creation";
     const modal = createModalWindow(cardCreationWindowName, {displayCloseButton: false});
     modal.classList.add("modal-card-creation");
@@ -97,10 +100,11 @@ export function getModalCardEditor(cardDataArray = null) {
     });*/
 
     if (!cardDataArray) cardDataArray = [];
-    cardDataManage.validateData(cardDataArray);
+    if (isValidateData) cardDataManage.validateData(cardDataArray);
     cardEditor.renderExistingBlocks(modal, cardDataArray);
     //renderEditorToolbar(modal, cardDataArray, "#", "html");
-    cardEditor.createInputCarret(modal, cardDataArray, "html");
+    cardEditor.createInputCarret(modal, cardDataArray, "html", {isValueArray: isValueArray});
+    return modal;
 }
 
 let editorToolbarHtml = null;

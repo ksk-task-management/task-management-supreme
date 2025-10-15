@@ -11,7 +11,7 @@ export function renderExistingBlocks(parentHtml, dataArray) {
     dataArray.forEach(blockdat => {
         const elementTemplate = elementTemplates.find(et => et.key.includes(blockdat.key));
         //console.log("T-1# >>Creating Edtor For: ", blockdat);
-        createEditor(parentHtml, "html", dataArray, elementTemplate, cardDataManage.makeValue(blockdat.key, blockdat), {
+        createEditor(parentHtml, "html", dataArray, elementTemplate, cardDataManage.isBlock(blockdat) ? cardDataManage.makeValue(blockdat.key, blockdat) : blockdat, {
             dataSlot: dataArray,
             dataSlotType: "html"
         });
@@ -36,7 +36,7 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
         }
     }
     
-    const forceDataToBeValue = options?.forceDataToBeValue === true;
+    const forceDataToBeValue = options?.forceDataToBeValue === true || options?.isValueArray === true;
 
     const inputFieldHandlerHtml = document.createElement('span');
     inputFieldHandlerHtml.classList.add('editor', 'input-field-span-inline-handler');
@@ -109,6 +109,7 @@ export function createInputCarret(parentHtml, data, valueType, options = null) {
                                     //Value
                                     newValueDat = cardDataManage.makeValue(etk, undefined);
                                 }
+                                console.log("Try saving", forceDataToBeValue);
                                 cardDataManage.appendData(data, newValueDat, {forceToBeValue: forceDataToBeValue, ...options});
 
                                 if (!isAdditive) {
@@ -200,6 +201,7 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                 if (!options) options = {};
                 options.innerValueType = valueType.split('-')[1].trim();
             }
+            options.parentData = parentData;
             newEditor = cardDataManage.getReturnValue(actualValueKey, objectDat, null, "editor", options);
         }
         isBlock = false;

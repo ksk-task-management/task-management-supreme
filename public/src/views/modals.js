@@ -20,7 +20,8 @@ export function createModalWindow(title, options = null) {
     newModalWindow.dataset.modalID = modalID;
 
     //Title
-    newModalWindow.appendChild(createTextHeader(title));
+    const txtTitle = newModalWindow.appendChild(createTextHeader(title));
+    txtTitle.classList.add("txt-modal-title");
 
     //Close Button
     if (displayCloseButton) {

@@ -56,7 +56,13 @@ export function deleteLocalCard(cardDataArray) {
 }
 
 export function saveCloudCard(cardDataArray) {
-    const cardID = cardDataManage.getDataUID(cardDataArray);
+    let cardID = cardDataManage.getDataUID(cardDataArray);
+    if (!cardID) {
+        cardDataArray = cardDataManage.getCardContainingData(cardDataArray);
+        cardID = cardDataManage.getDataUID(cardDataArray);
+    }
+    console.log(cardDataManage);
+
     appendEvent(`Saving the card ${cardID}`, async () => {
         const result = await postCloudData('saveCard', {
             sheetID: userData.sheetID,

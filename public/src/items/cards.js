@@ -10,6 +10,7 @@ import { userData } from "../main";
 import { appendEvent } from "../events/events";
 import { postCloudData } from "../databases/google-sheets";
 import { forceRenderOpeningPage, toggleNotification } from "../views/pages";
+import { getModalCardEditor } from "../views/editors/view-card-editor";
 
 export const majorCardTypes = [
     {
@@ -816,7 +817,7 @@ export const elementTemplates = [
                     }
 
                     const cropVal = cardDataManage.getReturnValue('text', dat, "crop_position", "value") ?? null;
-                    if (imgVal) {
+                    if (imgVal && imgVal.trim().length > 0) {
                         const imgContainerHtml = document.createElement('div');
                         imgContainerHtml.classList.add("display-block-img-container");
 
@@ -862,7 +863,6 @@ export const elementTemplates = [
 
                         return imgContainerHtml;
                     }
-                    return null;
                 }
             },
             "block":{
@@ -1110,11 +1110,12 @@ export const elementTemplates = [
                 value: (template, dat) => {
                     const value = cardDataManage.getReturnValue("text", dat, "content", "value") ?? "<Empty Content>";
                     const qrBlock = document.createElement('div');
-                    qrBlock.style.width = "100%";
+                    qrBlock.classList.add("display-block-image-qr-area");
+                    /*qrBlock.style.width = "100%";
                     qrBlock.style.padding = "7px";
                     qrBlock.style.marginTop = "2px";
                     qrBlock.style.border = "#d6d6d6 1px solid";
-                    qrBlock.style.borderRadius = "5px";
+                    qrBlock.style.borderRadius = "5px";*/
                     new QRCode(qrBlock, {
                         text: value,
                         colorDark: "#373737ff",
@@ -1398,6 +1399,173 @@ export const elementTemplates = [
                     }
 
                     return horzDividerHtml;
+                }
+            },
+            "block": {
+
+            }
+        }
+    },
+    {
+        key: ["incomplete-area"],
+        icon: () => "deployed_code_alert",
+        value: [
+            {
+                name: "Text",
+                refName: "text",
+                type: "text",
+                isOmittable: true,
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "Information Required"
+                    }
+                }
+            },
+            {
+                name: "Icon",
+                refName: "icon",
+                type: "text",
+                isOmittable: true,
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "extension"
+                    }
+                }
+            },
+            {
+                name: "Inside Content",
+                refName: "inside_content",
+                type: "set-html",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    let contentArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value") ?? [];
+                    if (!Array.isArray(contentArray))
+                        contentArray = [contentArray];
+                    contentArray = contentArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value") ?? undefined).filter(el => cardDataManage.isMatter(el));
+
+                    if (contentArray && contentArray.length > 0) {
+                        const txtIcon = cardDataManage.getReturnValue("text", dat, "icon", "value") ?? "extension";
+                        const txtText = cardDataManage.getReturnValue("text", dat, "text", "value") ?? "Incomplete";
+
+                        const alertHtml = document.createElement('div');
+                        alertHtml.classList.add('display-block-areaincomplete');
+                        const clickEditFunc = ev => {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                            const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value");
+                            const modal = getModalCardEditor(insideArray, {bypassValidation: true, isValueArray: true});
+                            modal.style.border = "rgb(253, 1, 123) 2px dashed";
+                            modal.querySelector('.txt-modal-title').textContent = "Edit Incomplete Area";
+                            const btnApplyHtml = modal.querySelector('.btn-card-editor.btn-save');
+                            if (btnApplyHtml) {
+                                btnApplyHtml.querySelector('.txt').textContent = "Save this Area";
+                            }
+
+                            const btnInnerFinishHtml = modal.querySelector('.btn-card-editor.btn-delete');
+                            if (btnInnerFinishHtml) {
+                                btnInnerFinishHtml.querySelector('.icon').textContent = "check_circle";
+                                btnInnerFinishHtml.onclick = () => {
+                                    console.log("Area Finished");
+                                }
+                            }
+                        }
+                        alertHtml.addEventListener('click', ev => clickEditFunc(ev));
+
+                        const topPanelHtml = document.createElement('div');
+                        topPanelHtml.classList.add('display-block-areaincomplete-toparea');
+                        alertHtml.appendChild(topPanelHtml);
+
+                        const icnHtml = document.createElement('span');
+                        icnHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-areaincomplete-toparea-icon');
+                        icnHtml.textContent = txtIcon;
+                        topPanelHtml.appendChild(icnHtml);
+
+                        const topTextHtml = document.createElement('span');
+                        topTextHtml.classList.add('display-block-areaincomplete-toparea-text');
+                        topTextHtml.textContent = txtText;
+                        topPanelHtml.appendChild(topTextHtml);
+
+                        contentArray.forEach(el => {
+                            if (el instanceof HTMLElement) {
+                                alertHtml.appendChild(el);
+                            }
+                        });
+
+                        const bottomPanelHtml = document.createElement('div');
+                        bottomPanelHtml.classList.add('display-block-areaincomplete-bottomarea');
+                        alertHtml.appendChild(bottomPanelHtml);
+
+                        const btnCompletionHtml = document.createElement('span');
+                        btnCompletionHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-areaincomplete-bottomarea-btn');
+                        btnCompletionHtml.textContent = "check_circle";
+                        bottomPanelHtml.appendChild(btnCompletionHtml);
+                        const completeFunc = ev => {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                            const card = cardDataManage.getCardContainingData(dat);
+                            const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value") ?? [];
+                            if (card) {
+                                let refDat = cardDataManage.getDataReference(card, dat, "$");
+                                console.log("R1", refDat);
+                                if (refDat.parent.value && refDat.parent.value === dat) {
+                                    refDat = cardDataManage.getDataReference(card, refDat.parent, "$");
+                                }
+                                console.log("R2", refDat);
+                                if (refDat) {
+                                    if (Array.isArray(refDat.parent)) {
+                                        const datID = refDat.value["uid"] ? "uid" : "valueID";
+                                        const matchIdx = refDat.parent.findIndex(block => block[datID] === refDat.value[datID]);
+                                        if (matchIdx >= 0) {
+                                            refDat.parent.splice(matchIdx, 1, ...insideArray);
+                                        }
+                                    }
+                                    else {
+                                        if (insideArray.length === 1) {
+                                            refDat.parent.value = insideArray.shift();
+                                        }
+                                        else {
+                                            if (confirm("The result section will be converted into a panel")) {
+                                                const newPanelBlock = cardDataManage.makeBlock("panel", [{
+                                                    refName: "content", 
+                                                    value: {
+                                                        key: "set",
+                                                        value: insideArray
+                                                    }
+                                                }]);
+                                                refDat.parent.value = cardDataManage.makeValue("panel", newPanelBlock);
+                                            }
+                                        }
+                                    }
+                                    localData.appendLocalCard(card);
+                                    localData.saveCloudCard(card);
+                                    forceRenderOpeningPage();
+                                }
+                            }
+                        }
+                        btnCompletionHtml.addEventListener('click', ev => completeFunc(ev));
+
+                        const btnEditHtml = document.createElement('span');
+                        btnEditHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-areaincomplete-bottomarea-btn');
+                        btnEditHtml.textContent = "add_circle";
+                        bottomPanelHtml.appendChild(btnEditHtml);
+                        btnEditHtml.addEventListener('click', ev => {
+                            
+                            clickEditFunc(ev);
+                        });
+
+                        return alertHtml;
+                    }
                 }
             },
             "block": {
