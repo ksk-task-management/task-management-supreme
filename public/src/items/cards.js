@@ -124,7 +124,7 @@ export const defaultCardStatus = [
         status: "On Hold",
         icon: "pause_circle",
         color: "#e0bb26",
-        scoreAdjust: 10,
+        scoreAdjust: 75,
         progressPercent: 0,
         quickButtons: [
             {
@@ -344,6 +344,58 @@ export const elementTemplates = [
         }
     },
     {
+        key: ["header"],
+        icon: () => "format_h1",
+        value: [
+            {
+                name: "Text",
+                refName: "text",
+                type: "text",
+                initialValue: () => {
+                    const descArray = ["This is the header!", "Header time!", "Let's add this header", "A header!"]
+                    return {key: "text", value: descArray[Math.floor(Math.random() * descArray.length)]};
+                },
+            },
+            {
+                name: "Format",
+                refName: "format",
+                type: "text",
+                isOmittable: true,
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "H3"
+                    }
+                }
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    //console.log("--Getting Text");
+                    const headerText = cardDataManage.getReturnValue("text", dat, "text", "value") ?? "<Header>";
+                    //console.log("--Getting Format");
+                    let headerFormat = cardDataManage.getReturnValue("text", dat, "format", "value")?.toLowerCase() ?? "h3";
+                    if (headerFormat.trim().length <= 0)
+                        headerFormat = "h3";
+                    const headerHtml = document.createElement("div");
+                    headerHtml.classList.add('txt-header', headerFormat);
+                    headerHtml.textContent = headerText;
+                    return headerHtml;
+                }
+            },
+            "block": {
+
+            },
+            "text": {
+                value: (template, dat) => {
+                    var titleElement = cardDataManage.getReturnValue("text", dat, "text", "value") ?? "";
+                    return titleElement;
+                }
+            }
+        }
+    },
+    {
         key: ["description"],
         icon: () => "short_text",
         value: [
@@ -352,7 +404,10 @@ export const elementTemplates = [
                 refName: "text",
                 type: "text",
                 initialValue: () => {
-                    const descArray = ["Type something!", "Let's explain!", "Provide Info!", "Label me!"]
+                    const descArray = ["Type something!", "Let's explain!", "Provide Info!", "Label me!", "Write that down!", 
+                        "Detail it for me!", "Give the rundown!", "Define this!", "What's the meaning?", "Tell me about it!",
+                        "Elaborate, please!", "Break it down!", "Need the specifics!",
+                        "Input the text!", "Explain the idea!", "Supply the data!", "Identify the subject!"]
                     return {key: "text", value: descArray[Math.floor(Math.random() * descArray.length)]};
                 },
             }
@@ -362,7 +417,7 @@ export const elementTemplates = [
                 value: (template, dat) => {
                     const newHtml = document.createElement('div');
                     newHtml.classList.add('area-horizontal');
-                    var titleElement = cardDataManage.getReturnValue("html|text", dat, "text", "value");
+                    var titleElement = cardDataManage.getReturnValue("text", dat, "text", "value");
                     if (typeof titleElement === 'string') {
                         const newStringDisplay = document.createElement('span');
                         newStringDisplay.classList.add('txt-description');
@@ -379,7 +434,10 @@ export const elementTemplates = [
 
             },
             "text": {
-                
+                value: (template, dat) => {
+                    var titleElement = cardDataManage.getReturnValue("text", dat, "text", "value") ?? "";
+                    return titleElement;
+                }
             }
         }
     },
@@ -520,6 +578,7 @@ export const elementTemplates = [
                     arrayContainerHtml.style.width = '100%';
                     arrayContainerHtml.style.height = 'fit-content';
                     const initialValue = cardDataManage.getReturnValue("set-*", dat, "items", "value");
+                    //console.log("Array value 1", initialValue);
                     const setValue = [initialValue];
                     while (setValue.some(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)))) {
                         const idxNestedArray = setValue.findIndex(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)));
@@ -528,7 +587,8 @@ export const elementTemplates = [
                         nestedValue.forEach(nv => {
                             if (!cardDataManage.isMatter(nv))
                                 return;
-                            const r = cardDataManage.getReturnValue("*", nv, "*", "value");
+                            const r = cardDataManage.getReturnValue("html|*", nv, "*", "value");
+                            //console.log("Array Element", nv, r);
                             if (!cardDataManage.isMatter(r))
                                 return;
                             if (Array.isArray(r)) {
@@ -539,6 +599,8 @@ export const elementTemplates = [
                         });
                         setValue.splice(idxNestedArray, 1, ...tempResult);
                     }
+
+                    //console.log("Array value 2", setValue);
 
                     setValue?.forEach(valValue => {
                         //May be use valueType = "*" but afraid of unexoected results
@@ -615,6 +677,7 @@ export const elementTemplates = [
             "html": {
                 value: (template, dat) => {
                     var setValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
+                    //console.log("Numbered value 1: ", setValue);
                     const valueEntryArray = [];
                     if (setValue && !(setValue instanceof Node)) {
                         if (Array.isArray(setValue)) {
@@ -625,6 +688,7 @@ export const elementTemplates = [
                             }
                         }
                     }
+                    //console.log("Numbered value 2: ", setValue);
 
                     const candidateParents = [];
                     if (setValue && setValue instanceof Node) {
@@ -693,7 +757,12 @@ export const elementTemplates = [
                         htmlArray = [htmlArray];
                     htmlArray = htmlArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value")).filter(el => cardDataManage.isMatter(el));
                     const galleryHtml = document.createElement('div');
-                    galleryHtml.classList.add("display-block-list-gallery-horz");
+                    galleryHtml.classList.add('display-block-list-gallery-horz-holder');
+
+                    const galleryScrollerHtml = document.createElement('div');
+                    galleryScrollerHtml.classList.add("display-block-list-gallery-horz");
+                    galleryHtml.appendChild(galleryScrollerHtml);
+
                     htmlArray.forEach(el => {
                         if (!(el instanceof HTMLElement))
                             return;
@@ -701,7 +770,7 @@ export const elementTemplates = [
                         galleryItemHtml.classList.add("display-block-list-gallery-horz-item");
                         if (htmlArray.length > 1) 
                             galleryItemHtml.classList.add("multiple");
-                        galleryHtml.appendChild(galleryItemHtml);
+                        galleryScrollerHtml.appendChild(galleryItemHtml);
 
                         el.style.border = ' rgb(197, 197, 197) 1.5px solid';
                         el.style.borderRadius = "5px";
@@ -723,11 +792,11 @@ export const elementTemplates = [
                         scrollButtonBackHtml.addEventListener('click', ev => {
                             ev.preventDefault();
                             ev.stopPropagation();
-                            const itemCount = galleryHtml.children.length - 1;
+                            const itemCount = galleryScrollerHtml.children.length;
                             const prevIndex = (currentIndex - 1 + itemCount) % itemCount;
-                            const prevItem = galleryHtml.children[prevIndex];
+                            const prevItem = galleryScrollerHtml.children[prevIndex];
                             const targetScrollLeft = prevItem.offsetLeft;
-                            galleryHtml.scroll({
+                            galleryScrollerHtml.scroll({
                                 left: targetScrollLeft,
                                 behavior: 'smooth'
                             });
@@ -741,11 +810,11 @@ export const elementTemplates = [
                         scrollButtonForwardHtml.addEventListener('click', ev => {
                             ev.preventDefault();
                             ev.stopPropagation();
-                            const itemCount = galleryHtml.children.length - 1;
+                            const itemCount = galleryScrollerHtml.children.length;
                             const nextIndex = (currentIndex + 1) % itemCount;
-                            const nextItem = galleryHtml.children[nextIndex];
+                            const nextItem = galleryScrollerHtml.children[nextIndex];
                             const targetScrollLeft = nextItem.offsetLeft;
-                            galleryHtml.scroll({
+                            galleryScrollerHtml.scroll({
                                 left: targetScrollLeft,
                                 behavior: 'smooth'
                             });
@@ -1454,7 +1523,7 @@ export const elementTemplates = [
                         contentArray = [contentArray];
                     contentArray = contentArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value") ?? undefined).filter(el => cardDataManage.isMatter(el));
 
-                    if (contentArray && contentArray.length > 0) {
+                    if (contentArray) {
                         const txtIcon = cardDataManage.getReturnValue("text", dat, "icon", "value") ?? "extension";
                         const txtText = cardDataManage.getReturnValue("text", dat, "text", "value") ?? "Incomplete";
 
@@ -1496,9 +1565,13 @@ export const elementTemplates = [
                         topTextHtml.textContent = txtText;
                         topPanelHtml.appendChild(topTextHtml);
 
+                        const contentHtml = document.createElement('div');
+                        contentHtml.classList.add('display-block-areaincomplete-contentarea');
+                        alertHtml.appendChild(contentHtml);
+
                         contentArray.forEach(el => {
                             if (el instanceof HTMLElement) {
-                                alertHtml.appendChild(el);
+                                contentHtml.appendChild(el);
                             }
                         });
 
@@ -1506,54 +1579,54 @@ export const elementTemplates = [
                         bottomPanelHtml.classList.add('display-block-areaincomplete-bottomarea');
                         alertHtml.appendChild(bottomPanelHtml);
 
-                        const btnCompletionHtml = document.createElement('span');
-                        btnCompletionHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-areaincomplete-bottomarea-btn');
-                        btnCompletionHtml.textContent = "check_circle";
-                        bottomPanelHtml.appendChild(btnCompletionHtml);
-                        const completeFunc = ev => {
-                            ev.stopPropagation();
-                            ev.preventDefault();
-                            const card = cardDataManage.getCardContainingData(dat);
-                            const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value") ?? [];
-                            if (card) {
-                                let refDat = cardDataManage.getDataReference(card, dat, "$");
-                                console.log("R1", refDat);
-                                if (refDat.parent.value && refDat.parent.value === dat) {
-                                    refDat = cardDataManage.getDataReference(card, refDat.parent, "$");
-                                }
-                                console.log("R2", refDat);
-                                if (refDat) {
-                                    if (Array.isArray(refDat.parent)) {
-                                        const datID = refDat.value["uid"] ? "uid" : "valueID";
-                                        const matchIdx = refDat.parent.findIndex(block => block[datID] === refDat.value[datID]);
-                                        if (matchIdx >= 0) {
-                                            refDat.parent.splice(matchIdx, 1, ...insideArray);
-                                        }
+                        if (contentArray.length > 0) {
+                            const btnCompletionHtml = document.createElement('span');
+                            btnCompletionHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-areaincomplete-bottomarea-btn');
+                            btnCompletionHtml.textContent = "check_circle";
+                            bottomPanelHtml.appendChild(btnCompletionHtml);
+                            const completeFunc = ev => {
+                                ev.stopPropagation();
+                                ev.preventDefault();
+                                const card = cardDataManage.getCardContainingData(dat);
+                                const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value") ?? [];
+                                if (card) {
+                                    let refDat = cardDataManage.getDataReference(card, dat, "$");
+                                    if (refDat.parent.value && refDat.parent.value === dat) {
+                                        refDat = cardDataManage.getDataReference(card, refDat.parent, "$");
                                     }
-                                    else {
-                                        if (insideArray.length === 1) {
-                                            refDat.parent.value = insideArray.shift();
-                                        }
-                                        else {
-                                            if (confirm("The result section will be converted into a panel")) {
-                                                const newPanelBlock = cardDataManage.makeBlock("panel", [{
-                                                    refName: "content", 
-                                                    value: {
-                                                        key: "set",
-                                                        value: insideArray
-                                                    }
-                                                }]);
-                                                refDat.parent.value = cardDataManage.makeValue("panel", newPanelBlock);
+                                    if (refDat) {
+                                        if (Array.isArray(refDat.parent)) {
+                                            const datID = refDat.value["uid"] ? "uid" : "valueID";
+                                            const matchIdx = refDat.parent.findIndex(block => block[datID] === refDat.value[datID]);
+                                            if (matchIdx >= 0) {
+                                                refDat.parent.splice(matchIdx, 1, ...insideArray);
                                             }
                                         }
+                                        else {
+                                            if (insideArray.length === 1) {
+                                                refDat.parent.value = insideArray.shift();
+                                            }
+                                            else {
+                                                if (confirm("The result section will be converted into a panel")) {
+                                                    const newPanelBlock = cardDataManage.makeBlock("panel", [{
+                                                        refName: "content", 
+                                                        value: {
+                                                            key: "set",
+                                                            value: insideArray
+                                                        }
+                                                    }]);
+                                                    refDat.parent.value = cardDataManage.makeValue("panel", newPanelBlock);
+                                                }
+                                            }
+                                        }
+                                        localData.appendLocalCard(card);
+                                        localData.saveCloudCard(card);
+                                        forceRenderOpeningPage();
                                     }
-                                    localData.appendLocalCard(card);
-                                    localData.saveCloudCard(card);
-                                    forceRenderOpeningPage();
                                 }
                             }
+                            btnCompletionHtml.addEventListener('click', ev => completeFunc(ev));
                         }
-                        btnCompletionHtml.addEventListener('click', ev => completeFunc(ev));
 
                         const btnEditHtml = document.createElement('span');
                         btnEditHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-areaincomplete-bottomarea-btn');

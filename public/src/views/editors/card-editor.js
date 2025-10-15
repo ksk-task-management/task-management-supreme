@@ -225,6 +225,29 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                 //Array Editors
                 if (parentData && Array.isArray(parentData)) {
                     const currentIdx = parentData.findIndex(c => cardDataManage.isMatch(c, objectDat));
+                    if (currentIdx > 0) {
+                        menuItems.push(
+                            {
+                                icon: "north",
+                                onClick: () => {
+                                    const targetIdx = currentIdx - 1;
+                                    const targetElement = parentData[targetIdx];
+                                    var pracVal = objectDat;
+                                    if (cardDataManage.isBlock(targetElement) && !cardDataManage.isBlock(pracVal) && pracVal.value && cardDataManage.isBlock(pracVal.value)) {
+                                        pracVal = pracVal.value;
+                                    }
+                                    parentData[targetIdx] = pracVal;
+                                    parentData[currentIdx] = targetElement;
+                                    const testIndex = Array.from(parentHtml.children).indexOf(newEditor);
+                                    if (testIndex > -1) {
+                                       const target = parentHtml.children[testIndex - 1];
+                                       parentHtml.insertBefore(newEditor, target);
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    
                     if (currentIdx < parentData.length - 1) {
                         menuItems.push(
                             {
@@ -248,28 +271,7 @@ export function createEditor(parentHtml, valueType, parentData, objectTemplate, 
                         )
                     }
 
-                    if (currentIdx > 0) {
-                        menuItems.push(
-                            {
-                                icon: "north",
-                                onClick: () => {
-                                    const targetIdx = currentIdx - 1;
-                                    const targetElement = parentData[targetIdx];
-                                    var pracVal = objectDat;
-                                    if (cardDataManage.isBlock(targetElement) && !cardDataManage.isBlock(pracVal) && pracVal.value && cardDataManage.isBlock(pracVal.value)) {
-                                        pracVal = pracVal.value;
-                                    }
-                                    parentData[targetIdx] = pracVal;
-                                    parentData[currentIdx] = targetElement;
-                                    const testIndex = Array.from(parentHtml.children).indexOf(newEditor);
-                                    if (testIndex > -1) {
-                                       const target = parentHtml.children[testIndex - 1];
-                                       parentHtml.insertBefore(newEditor, target);
-                                    }
-                                }
-                            }
-                        )
-                    }
+                    
                 }
 
                 //Parenting System - Unparent (ยังไม่มีเคสต้องทำ)

@@ -281,12 +281,26 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
     while (pracVal && !satisfactions) {
         var elTemplate = null;
         var elSatisfaction = null;
+        if (isBlock(pracVal)) {
+                //console.log("Y1-1 Block", pracVal,"CANNOT satisfy the requested valueType: ", valueType, " w/ requested refname: ", valueChannelRefName);
+                if (valueChannelRefName && pracVal.value && pracVal.value.length > 0) {
+                    const rootIndx = pracVal.value.findIndex(bv => {
+                        return valueChannelRefName === "*" || (bv.refName && bv.refName === valueChannelRefName && bv.value);
+                    });
+                    if (rootIndx >= 0) {
+                        pracVal = pracVal.value[rootIndx].value;
+                        //console.log("Y1-1-2 Now pracVal is a value: ", pracVal);
+                        continue;
+                    }
+                }
+            }
+
         if (pracVal.key) {
             elTemplate = elementTemplates.find(et => et.key.includes(pracVal.key));
             elSatisfaction = checkValueReturnSatisfaction(elTemplate, valueType);
             //console.log("Y1 Testing the satisfactions originated from", pracVal, "for the valueType", elSatisfaction);
             if (elSatisfaction) {
-                //console.log("Y1-0 Element/Block", pracVal,"can satisfy the requested valueType: ", valueType, "with satisfaction:", satisfactions);
+                //console.log("Y1-0 Element/Block", pracVal,"can satisfy the requested valueType: ", valueType, " requested refName: ", valueChannelRefName, "with satisfaction:", satisfactions);
                 //>> Check if the UD elements can also satisfy the valueType or not -> Preventing the infinite loop
                 if (valueChannelRefName && pracVal.value) {
                     var candidateUDVal = pracVal.value;
@@ -300,18 +314,25 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
                     if (candidateUDVal) {
                         if (candidateUDVal.key) {
                             //console.log("Y1-0.2", candidateUDVal);
-                        const cUDValTemplate = elementTemplates.find(et => et.key.includes(candidateUDVal.key));
-                        if (cUDValTemplate) {
-                            //console.log("Y1-0.3");
-                            const cUDValSat = checkValueReturnSatisfaction(cUDValTemplate, valueType);
-                            if (cUDValSat) {
-                                //console.log("Y1-0.4 Element/Block", pracVal, "also possesses a UD element", candidateUDVal,"which can satisfy the valueType", valueType);
-                                pracVal = candidateUDVal;
-                                objectTemplate = cUDValTemplate;
-                                satisfactions = cUDValSat;
-                                continue;
+                            const cUDValTemplate = elementTemplates.find(et => et.key.includes(candidateUDVal.key));
+                            if (cUDValTemplate) {
+                             //console.log("Y1-0.3");
+                                const cUDValSat = checkValueReturnSatisfaction(cUDValTemplate, valueType);
+                                if (cUDValSat) {
+                                    //<!> Temporary Fixing -> Need for long-term support
+                                    if (valueChannelRefName && valueChannelRefName !== "*" && (!candidateUDVal.refName || candidateUDVal.refName !== valueChannelRefName)) {
+                                        //console.log("Candidate for rooting: ", candidateUDVal);
+                                        pracVal = candidateUDVal;
+                                        continue;
+                                    }
+                                        
+                                    //console.log("Y1-0.4 Element/Block", pracVal, "also possesses a UD element", candidateUDVal,"which can satisfy the valueType", valueType);
+                                    pracVal = candidateUDVal;
+                                    objectTemplate = cUDValTemplate;
+                                    satisfactions = cUDValSat;
+                                    continue;
+                                }
                             }
-                        }
                         }
                         
                     }
@@ -326,20 +347,6 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
             }
         }
 
-        if (isBlock(pracVal)) {
-                //console.log("Y1-1 Block", pracVal,"CANNOT satisfy the requested valueType: ", valueType);
-                if (valueChannelRefName && pracVal.value && pracVal.value.length > 0) {
-                    const rootIndx = pracVal.value.findIndex(bv => {
-                        return valueChannelRefName === "*" || (bv.refName && bv.refName === valueChannelRefName && bv.value);
-                    });
-                    if (rootIndx >= 0) {
-                        pracVal = pracVal.value[rootIndx].value;
-                        //console.log("Y1-1-2 Now pracVal is a value: ", pracVal);
-                        continue;
-                    }
-                }
-        }
-
         if (pracVal.value) {
             if (isBlock(pracVal.value)) {
                 //console.log("Y2R the value is a block -> Referred", pracVal.value);
@@ -347,6 +354,10 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
                 continue;
             }
         }
+
+            
+
+        
 
         pracVal = null;
     }

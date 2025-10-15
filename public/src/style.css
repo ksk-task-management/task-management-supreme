@@ -4,7 +4,8 @@
     --primary-color: #742148;
     --color-gray-light: rgb(229, 229, 229);
     --primary-color-trans1: rgba(114, 37, 73, 0.5);
-    --primary-font-size: 16px;
+    --primary-font-color: rgb(65, 59, 59);
+    --primary-font-size: 15px;
 
     --color-selected: #6f03fc;
     --color-selected-gold: rgb(255, 193, 50);
@@ -21,7 +22,10 @@
 body {
     font-family: 'K2D', sans-serif;
     font-size: var(--primary-font-size);
+    line-height: 16px;
+    color: var(--primary-font-color);
     user-select: none;
+    word-break: break-word;
 }
 
 /*Universal styling*/
@@ -61,22 +65,52 @@ body {
     background-color: white;
 }
 
-.txt-header {
+.txt-title {
     font-weight: bold;
-    margin-bottom: 2px;
-    color: rgb(95, 95, 95);
+    font-size: 18px;
+    line-height: 22px;
+    color: rgb(86, 86, 86);
+    text-shadow: var(--shadow-min);
 }
 
-.txt-header-description {
-    font-size: 14px;
-    line-height: 15px;
-    color:#8e8e8e;
+.txt-header.h1 {
+    font-weight: 900;
+    font-size: 17.5px;
+    line-height: 22px;
+    margin: 2px 0px;
+}
+
+.txt-header.h2 {
+    font-size: 16.5px;
+    font-weight: 800;
+    line-height: 18px;
+    margin: 2px 0px;
+}
+
+.txt-header {
+    font-size: 15.5px;
+    font-weight: 700;
+    margin: 2px 0px;
+    text-shadow: var(--shadow-min);
+}
+
+.txt-header.h4 {
+    font-weight: 600;
+}
+
+.txt-header.h5 {
+    color: rgb(106, 106, 106);
+    font-weight: 500;
+}
+
+.txt-header.h6 {
+    color: rgb(140, 140, 140);
+    font-weight: 450;
 }
 
 .txt-description {
-    font-size: 14px;
+    font-size: var(--primary-font-size);
     line-height: 18px;
-    color: rgb(120, 120, 120);
 }
 
 .txt-smaller {
@@ -801,9 +835,7 @@ body {
     --area-primary-color: rgb(253, 1, 123);
     --line-color: rgba(255, 0, 106, 0.11);
     position: relative;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
+    display: block;
     background-size: 10px 10px;
     background-image:
         linear-gradient(to right, var(--line-color) 1px, transparent 1px),
@@ -844,6 +876,29 @@ body {
     text-shadow: var(--shadow-med);
 }
 
+.display-block-areaincomplete-contentarea {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    width: fit-content;
+    height: fit-content;
+}
+
+.display-block-areaincomplete-contentarea:empty {
+    align-items: center;
+    justify-content: center;
+}
+
+.display-block-areaincomplete-contentarea:empty::before {
+    content: "Try add something! 💡🌿✨";
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(253, 1, 123, 0.35);
+    text-shadow: var(--shadow-min);
+    width: fit-content;
+}
+
 .display-block-areaincomplete-bottomarea {
     position: absolute;
     right: 5px;
@@ -875,8 +930,19 @@ body {
 }
 
 /*List - Gallery - Horizontal - Display*/
-.display-block-list-gallery-horz {
+.display-block-list-gallery-horz-holder {
     position: relative;
+    display: block;
+    width: 100%;
+    height: fit-content;
+    margin-top: 4px;
+    padding: 4px;
+    background-color: rgb(240, 240, 240);
+    border-radius: 5px;
+}
+
+
+.display-block-list-gallery-horz {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -890,10 +956,7 @@ body {
     scroll-behavior: smooth;
     overscroll-behavior-inline: none !important;
     overscroll-behavior: contain !important; 
-    margin-top: 4px;
-    padding: 4px;
-    background-color: rgb(240, 240, 240);
-    border-radius: 5px;
+    
     /*border-radius: 5px;
     box-shadow: var(--shadow-inset-default);*/
 }
@@ -912,9 +975,9 @@ body {
 }
 
 .display-block-list-gallery-horz-btn-area {
-    position: fixed;
-    right: 15px;
-    bottom: 15px;
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
     gap: 4px;
     display: flex;
     flex-direction: row;
@@ -1349,15 +1412,6 @@ body {
 
 .masonrylist-card div {
     width: 100%;
-}
-
-.masonrylist-card .txt-title {
-    font-weight: bold;
-    font-size: 18px;
-    line-height: 22px;
-    color: rgb(86, 86, 86);
-    text-shadow: var(--shadow-min);
-    word-break: break-all;
 }
 
 .display-data-error {
