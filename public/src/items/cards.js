@@ -577,8 +577,12 @@ export const elementTemplates = [
                     arrayContainerHtml.classList.add('display-container');
                     arrayContainerHtml.style.width = '100%';
                     arrayContainerHtml.style.height = 'fit-content';
-                    const initialValue = cardDataManage.getReturnValue("set-*", dat, "items", "value");
-                    //console.log("Array value 1", initialValue);
+
+                    //console.log("Getting Array Result: ", dat);
+                    const testValue = cardDataManage.getReturnValue('*', dat, 'items', "value");
+                    //console.log("Test array element", testValue);
+
+                    const initialValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
                     const setValue = [initialValue];
                     while (setValue.some(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)))) {
                         const idxNestedArray = setValue.findIndex(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)));
@@ -606,7 +610,9 @@ export const elementTemplates = [
                         //May be use valueType = "*" but afraid of unexoected results
                         if (!valValue) return;
                         const valContainer = document.createElement('div');
-                        valContainer.style.display = 'inline-block';
+                        valContainer.classList.add('display-block-array-item');
+                        //valContainer.dataset.valueID = val
+                        /*valContainer.style.display = 'inline-block';
                         valContainer.style.width = 'fit-content';
                         valContainer.style.maxWidth = '100%';
                         valContainer.style.height = 'fit-content';
@@ -615,7 +621,7 @@ export const elementTemplates = [
                         valContainer.style.borderRadius = '5px';
                         valContainer.style.boxShadow = 'var(--shadow-min)';
                         valContainer.style.padding = '3px 6px';
-                        valContainer.style.margin = '2px 2px';
+                        valContainer.style.margin = '2px 2px';*/
                         arrayContainerHtml.appendChild(valContainer);
 
                         if (valValue instanceof Node) {
@@ -677,8 +683,7 @@ export const elementTemplates = [
             "html": {
                 value: (template, dat) => {
                     var setValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
-                    //console.log("Numbered value 1: ", setValue);
-                    const valueEntryArray = [];
+                    const itemHtmlArray = [];
                     if (setValue && !(setValue instanceof Node)) {
                         if (Array.isArray(setValue)) {
                             const arrayDistTemplate = elementTemplates.find(et => et.key.includes("array"));
@@ -688,46 +693,48 @@ export const elementTemplates = [
                             }
                         }
                     }
-                    //console.log("Numbered value 2: ", setValue);
 
                     const candidateParents = [];
                     if (setValue && setValue instanceof Node) {
                         const unclearedEntry = [setValue];
                         while (unclearedEntry.some(u => Array.isArray(u) || u.classList.contains('display-container'))) {
-                            const thatIdx = unclearedEntry.findIndex(u => Array.isArray(u) || u.classList.contains('display-container'));
-                            const newOnes = [];
-                            if (Array.isArray(unclearedEntry[thatIdx])) {
-                                unclearedEntry[thatIdx].forEach(i => {
-                                    newOnes.push(i);
+                            const containerIdx = unclearedEntry.findIndex(u => Array.isArray(u) || u.classList.contains('display-container'));
+                            const newItems = [];
+                            if (Array.isArray(unclearedEntry[containerIdx])) {
+                                unclearedEntry[containerIdx].forEach(i => {
+                                    newItems.push(i);
                                 });
                             }
-                            else if (unclearedEntry[thatIdx] instanceof Node) {
-                                unclearedEntry[thatIdx].childNodes.forEach(i => {
-                                    newOnes.push(i);
+                            else if (unclearedEntry[containerIdx] instanceof Node) {
+                                unclearedEntry[containerIdx].childNodes.forEach(i => {
+                                    newItems.push(i);
                                 });
-                                candidateParents.push(unclearedEntry[thatIdx]);
+                                candidateParents.push(unclearedEntry[containerIdx]);
                             }
-                            unclearedEntry.splice(thatIdx, 1, ...newOnes);
+                            unclearedEntry.splice(containerIdx, 1, ...newItems).forEach(el => {
+                                el.remove();
+                            });
                         }
 
                         unclearedEntry.forEach(i => {
                             if (i instanceof HTMLElement) {
-                                valueEntryArray.push(i);
+                                itemHtmlArray.push(i);
                             }
                         });
                     }
 
-                    if (valueEntryArray.length > 0){
-                        valueEntryArray.forEach((ve, idx) => {
+                    if (itemHtmlArray.length > 0){
+                        itemHtmlArray.forEach((ve, idx) => {
                             const numBadge = document.createElement('span');
-                            numBadge.classList.add('num-badge');
+                            numBadge.classList.add('display-block-numberedlist-numbadge', 'num-badge');
+                            /*numBadge.classList.add('num-badge');
                             numBadge.style.backgroundColor = '#787a7d';
                             numBadge.style.color = 'white';
                             numBadge.style.borderRadius = '5px';
                             numBadge.style.fontSize = '14px';
                             numBadge.style.fontWeight = 'bold';
                             numBadge.style.padding = '1px 6px';
-                            numBadge.style.marginRight = '4px';
+                            numBadge.style.marginRight = '4px';*/
                             numBadge.textContent = (idx + 1).toString();
                             ve.prepend(numBadge);
                         });
@@ -736,6 +743,124 @@ export const elementTemplates = [
                 }
             },
             "block": {
+            },
+            "set": {
+                value: (template, dat) => cardDataManage.getReturnValue('set-*', dat, 'items', 'value')
+            }
+        }
+    },
+    {
+        key: ["checklist-entry"],
+        icon: () => "checklist",
+        value: [
+            {
+                name: "Items",
+                refName: "items",
+                type: "set-*",
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
+            },
+            {
+                name: "Display Only Incomplete Items",
+                refName: "display_only_incomplete",
+                type: "boolean",
+                isOmittable: true,
+                initialValue: () => {
+                    return {
+                        key: "boolean",
+                        value: true
+                    }
+                }
+            }
+        ],
+        return: {
+            "html": {
+                value: (template, dat) => {
+                    const itemArray = [cardDataManage.getReturnValue("set-*", dat, "items", "value")];
+                    //console.log("Test Checklist Set: ", itemArray);
+                    const displayOnlyUnfinished = cardDataManage.getReturnValue('boolean', dat, 'display_only_incomplete', "value") ?? true;
+                    //Unpack Set/Array
+                    let arrayIdx = itemArray.findIndex(ia => Array.isArray(ia) || (ia.value && Array.isArray(ia.value)) || !cardDataManage.isMatter(ia));
+                    while (arrayIdx >= 0) {
+                        const newItems = [];
+                        if (Array.isArray(itemArray[arrayIdx])) {
+                            newItems.push(...itemArray[arrayIdx]);
+                        }
+                        else if (itemArray[arrayIdx].value && Array.isArray(itemArray[arrayIdx].value)) {
+                            newItems.push(...itemArray[arrayIdx].value);
+                        }
+                        itemArray.splice(arrayIdx, 1, ...newItems);
+                        arrayIdx =  itemArray.findIndex(ia => Array.isArray(ia) || (ia.value && Array.isArray(ia.value)) || !cardDataManage.isMatter(ia));
+                    }
+
+                    const containerHtml = document.createElement('div');
+                    containerHtml.classList.add('display-container');
+                    containerHtml.style.width = '100%';
+                    containerHtml.style.height = 'fit-content';
+                    itemArray.forEach(item => {
+                        if (!item.key || !item.value || cardDataManage.isBlock(item))
+                            return;
+                        if (displayOnlyUnfinished && item.isComplete === true)
+                            return;
+                        let itemDisplayHtml = cardDataManage.getReturnValue('html|text', item, null, "value") ?? undefined;
+                        if (itemDisplayHtml && typeof itemDisplayHtml === 'string') {
+                            const stringHtml = document.createElement('span');
+                            stringHtml.textContent = itemDisplayHtml;
+                            itemDisplayHtml = stringHtml;
+                        }
+                        if (!cardDataManage.isMatter(itemDisplayHtml))
+                            return;
+                        const itemHtml = document.createElement('span');
+                        itemHtml.classList.add('display-block-array-item');
+
+                        const checkListToggleHtml = document.createElement('span');
+                        checkListToggleHtml.classList.add('display-block-checklist-toggle-area');
+                        itemHtml.appendChild(checkListToggleHtml);
+                        const renderToggleFunc = () => {
+                            if (item.isComplete === true) {
+                                checkListToggleHtml.classList.add("checked");
+                            }
+                            else {
+                                checkListToggleHtml.classList.remove("checked");
+                            }
+                        }
+                        renderToggleFunc();
+                        checkListToggleHtml.addEventListener('click', ev => {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                            const value = !(item.isComplete === true);
+                            if (value) {
+                                item.isComplete = true;
+                            }
+                            else if (item.isComplete) {
+                                item.isComplete = false;
+                            }
+                            const card = cardDataManage.getCardContainingData(dat);
+                            if (card) {
+                                localData.appendLocalCard(card);
+                                localData.saveCloudCard(card);
+                                forceRenderOpeningPage();
+                            }
+                        });
+
+                        itemHtml.appendChild(itemDisplayHtml);
+                        containerHtml.appendChild(itemHtml);
+                    });
+                    return containerHtml;
+                }
+            },
+            "block": {
+
+            },
+            "set": {
+                value: (template, dat) => cardDataManage.getReturnValue("set-*", dat, "items", "value")
+            },
+            "text": {
+
             }
         }
     },
@@ -1643,24 +1768,6 @@ export const elementTemplates = [
             },
             "block": {
 
-            }
-        }
-    },
-    {
-        key: ["checklist"],
-        icon: () => "checklist",
-        return: {
-            "html": {
-
-            },
-            "block": {
-
-            },
-            "text": {
-                
-            },
-            "array": {
-                
             }
         }
     },

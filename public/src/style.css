@@ -929,6 +929,49 @@ body {
     cursor: pointer;
 }
 
+/*List - Array - Display*/
+.display-block-array-item {
+    display: inline-block;
+    width: fit-content !important;
+    max-width: 100%;
+    height: fit-content;
+    background-color: white;
+    border: 1px solid #c3c3c3;
+    border-radius: 5px;
+    box-shadow: var(--shadow-min);
+    padding: 3px 6px;
+    margin: 2px;
+}
+
+/*List - Numbered - Display*/
+.display-block-numberedlist-numbadge {
+    display: inline-block;
+    background-color: #787a7d;
+    color: white;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0px 6px;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+/*List - Checklist - Display*/
+.display-block-checklist-toggle-area {
+    display: inline-block;
+    height: 16px;
+    aspect-ratio: 1/1;
+    background-color: #dedede;
+    border-radius: 5px;
+    box-shadow: inset 0px 2px 2px rgb(0,0,0,0.3), var(--shadow-min);
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.display-block-checklist-toggle-area.checked {
+    background-color: #0adf7f;
+} 
+
 /*List - Gallery - Horizontal - Display*/
 .display-block-list-gallery-horz-holder {
     position: relative;

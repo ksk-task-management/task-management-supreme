@@ -278,6 +278,7 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
     var pracVal = objectDat;
     var objectTemplate = null;
     var satisfactions = null;
+    let isReferred = false;
     while (pracVal && !satisfactions) {
         var elTemplate = null;
         var elSatisfaction = null;
@@ -288,6 +289,7 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
                         return valueChannelRefName === "*" || (bv.refName && bv.refName === valueChannelRefName && bv.value);
                     });
                     if (rootIndx >= 0) {
+                        isReferred = true;
                         pracVal = pracVal.value[rootIndx].value;
                         //console.log("Y1-1-2 Now pracVal is a value: ", pracVal);
                         continue;
@@ -320,8 +322,8 @@ export function getReturnValue(valueType, objectDat, valueChannelRefName, valueM
                                 const cUDValSat = checkValueReturnSatisfaction(cUDValTemplate, valueType);
                                 if (cUDValSat) {
                                     //<!> Temporary Fixing -> Need for long-term support
-                                    if (valueChannelRefName && valueChannelRefName !== "*" && (!candidateUDVal.refName || candidateUDVal.refName !== valueChannelRefName)) {
-                                        //console.log("Candidate for rooting: ", candidateUDVal);
+                                    if (!isReferred && valueChannelRefName && valueChannelRefName !== "*" && (!candidateUDVal.refName || candidateUDVal.refName !== valueChannelRefName)) {
+                                        //console.log("Candidate for rooting: ", candidateUDVal, isReferred);
                                         pracVal = candidateUDVal;
                                         continue;
                                     }
