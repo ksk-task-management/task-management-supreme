@@ -12,15 +12,7 @@ export function loadCloudDataToLocal() {
         toggleNotification('error', "No user sheet data found, please create one.", 'data_alert');
         return;
     }
-    loadCloudProjectData();
     loadCloudCardData();
-}
-
-export function loadCloudProjectData() {
-    if (!userData.sheetID || !userData.sheetUrl) {
-        toggleNotification('error', "No user sheet data found, please create one.", 'data_alert');
-        return;
-    }
 }
 
 export function loadCloudCardData() {
@@ -33,7 +25,7 @@ export function loadCloudCardData() {
         const result = await postCloudData(`loadCards`, {sheetID: userData.sheetID});
         localCardData = result.data.filter(card => card.uid !== '').map(card => JSON.parse(card.data));
         forceRenderOpeningPage();
-    }, "mitre");
+    }, "playing_cards");
 }
 
 export function appendLocalCard(newCardDataArray) {

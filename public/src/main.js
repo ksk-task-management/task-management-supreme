@@ -8,6 +8,7 @@ import { makeAction_ButtonSwitch } from "./views/view-actions";
 import * as pgMasonry from "./views/pages/page-masonry";
 import * as settings from "./views/editors/view-card-settings";
 import * as contextMenu from "./views/context-menu";
+import { delay } from "./utils/helpers";
 
 export const userData = {
     uid: null,
@@ -30,6 +31,30 @@ document.addEventListener('click', ev => {
         contextMenu.closeMenu();
     }
 });
+
+//Handle data compatibility between tabs/windows
+document.addEventListener('visibilitychange', handleVisibilityChange, false);
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        checkDataDuplication();
+    }
+}
+function checkDataDuplication() {
+    if (userData && userData.sheetID) {
+        appendEvent("Checking the last time edited", async () => {
+            const localDate = new Date(settings.getSettingModuleValue("LAST_EDIT_TIME"));
+            const result = await postCloudData('getLastEditSetting', {sheetID: userData.sheetID});
+            const cloudDate = new Date(result.data["LAST_EDIT_TIME"]) ?? undefined;
+            if (localDate && cloudDate && cloudDate > localDate) {
+                appendEvent("Data incompatibilities found! Begin advancing to the newer version.", async () => {
+                    await delay(1000);
+                    postLoginContentLoadings();
+                }, "settings_alert");
+            }
+
+        }, "graph_6");
+    }
+}
 
 
 function onAppLoad(){
@@ -128,7 +153,7 @@ btnLogin.addEventListener('click', async () => {
                     else {
                         userData.sheetID = retrievingData.data.sheetID;
                         userData.sheetUrl = retrievingData.data.sheetUrl;
-                        loadCloudDataToLocal();
+                        postLoginContentLoadings();
                     }
                     
                     inputLoginEmail.value = '';
@@ -156,11 +181,15 @@ btnLogin.addEventListener('click', async () => {
             }
         }, "data_table");
     }, 'login');
+});
 
+function postLoginContentLoadings() {
     appendEvent("Retieving the user's settings", async () => {
         await settings.loadAllSettings();
     }, "settings");
-});
+    loadCloudDataToLocal();
+
+}
 
 //Login - Go to Registration Page
 btnLoginGotoRegister.addEventListener('click', () => {

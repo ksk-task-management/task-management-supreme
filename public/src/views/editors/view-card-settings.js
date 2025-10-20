@@ -293,7 +293,7 @@ function renderSettingContent(containerHtml, tabSettingContent) {
         settingModuleAreaHtml.appendChild(txtModuleTitleHtml);
 
         if (setting.editor && typeof setting.editor === 'function'){
-            const moduleValue = getSettingModule(setting.refName);
+            const moduleValue = getSettingModuleValue(setting.refName);
             console.log("Rendering setting", setting.refName, moduleValue);
             const moduleValueObject = moduleValue ?? [];
             const moduleEditorHtml = setting.editor(moduleValueObject);
@@ -304,21 +304,34 @@ function renderSettingContent(containerHtml, tabSettingContent) {
     }
 }
 
-export function getSettingModule(refName) {
+export function getSettingModuleValue(settingModule) {
     return loadedSettings.find(s => {
-        console.log("Checking setting", s.settingModule, refName);
-        return s.settingModule === refName;
+        console.log("Checking setting", s.settingModule, settingModule);
+        return s.settingModule === settingModule;
     })?.settingValue;
+}
+
+export function setSettingModule(settingModule, settingValue) {
+    const setting = loadedSettings.find(s => s.settingModule === settingModule);
+    if (setting) {
+        setting.settingValue = settingValue;
+    }
 }
 
 export async function loadAllSettings() {
     const result = await postCloudData('fetchSettings', {sheetID: userData.sheetID});
+    loadedSettings = [];
     if (result.status === 'success' && result.data) {
         for (let setting of result.data) {
             if (setting.settingModule && setting.settingValue) {
                 let parsedData = undefined;
                 try {
-                    parsedData = JSON.parse(setting.settingValue);
+                    if (setting.settingModule !== "LAST_EDIT_TIME") {
+                        parsedData = JSON.parse(setting.settingValue);
+                    }
+                    else {
+                        parsedData = setting.settingValue;
+                    }
                 }
                 catch (e){
                     continue;

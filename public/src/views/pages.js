@@ -172,15 +172,18 @@ export function openEventLoading(txt, icon = null){
 }
 
 export function closeEventLoading(){
-    if (areaEventLoading.classList.contains('animation-slide-out-y'))
-        return;
-
     if (isAreaLoadingActive) {
-        areaEventLoading.classList.add('animation-slide-out-y');
-        areaEventLoading.onanimationend = () => {
-            areaEventLoading.classList.remove('animation-slide-out-y');
-            areaEventLoading.classList.add('hidden');
-        }
         isAreaLoadingActive = false;
     }
+
+    areaEventLoading.classList.remove('animation-slide-out-y');
+    areaEventLoading.classList.add('animation-slide-out-y');
+    areaEventLoading.onanimationend = () => {
+        areaEventLoading.classList.remove('animation-slide-out-y');
+        areaEventLoading.classList.add('hidden');
+    }
+    setTimeout(() => {
+        if (!areaEventLoading.classList.contains('hidden'));
+            areaEventLoading.classList.add('hidden');
+    }, 5000);
 }

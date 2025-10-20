@@ -1,7 +1,8 @@
 import { generateShortId } from "../utils/helpers";
 import { toggleNotification } from "../views/pages";
+import * as settings from "../views/editors/view-card-settings";
 
-export const googleWebBuildAPI = 'https://script.google.com/macros/s/AKfycbznwoxwQJEzN_aCh6PJDuRz95iJBkxkyWxtW3C7bLml0ThpNnci1ny38DZXOSroJBhZMA/exec';
+export const googleWebBuildAPI = 'https://script.google.com/macros/s/AKfycbx-WF5j9_2A_EOH09ZLF_wc5TQdUYpFAZI9nbuVbCpIyEeAeSo77dzrBiF7XZELuECPAg/exec';
 
 async function getCloudData(action){
     const url = `${googleWebBuildAPI}?action=${action}`;
@@ -17,6 +18,8 @@ async function getCloudData(action){
 }
 
 export async function postCloudData(action, data) {
+    data.lastEditTime = new Date().toISOString();
+    settings.setSettingModule('LAST_EDIT_TIME', data.lastEditTime);
     const payloadJSON = JSON.stringify({...data});
     var result = await fetch(`${googleWebBuildAPI}?action=${action}`, {
         method: 'POST',

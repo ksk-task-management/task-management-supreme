@@ -2117,7 +2117,7 @@ export const elementTemplates = [
                     //File Attach Behavior
                     editButtonHtml.addEventListener('click', ev => {
                         ev.stopPropagation();
-                        const cloudFolderIDs = (settings.getSettingModule("ONLINE_STORAGE_FOLDER_ID") ?? []).map(f => f.folderID).join(", ");
+                        const cloudFolderIDs = (settings.getSettingModuleValue("ONLINE_STORAGE_FOLDER_ID") ?? []).map(f => f.folderID).join(", ");
                         if (cloudFolderIDs.trim().length <= 0) {
                             alert("No Cloud Storage Folder is set. Please set up a cloud storage folder first.");
                             settings.getModalSettings();

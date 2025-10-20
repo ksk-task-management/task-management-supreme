@@ -99,3 +99,7 @@ export function to2DigitHex(colorValue) {
   }
   return colorValue.toString(16).padStart(2, '0');
 }
+
+export function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
