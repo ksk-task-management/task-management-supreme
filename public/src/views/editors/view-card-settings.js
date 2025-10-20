@@ -222,7 +222,7 @@ const settingStructure = [
     },
 ]
 
-const loadedSettings = [];
+let loadedSettings = [];
 let activeTab = "Appearance";
 export function getModalSettings() {
     const modalSettings = createModalWindow("Settings");
