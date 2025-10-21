@@ -1,4 +1,5 @@
-import * as cardDataManage from "../items/card-data-manage";
+import * as cardDataManage from "../configs/card-data-manage";
+import * as constants from "../configs/constants";
 
 /**
  * Generates a random 6-digit number string.
@@ -102,4 +103,27 @@ export function to2DigitHex(colorValue) {
 
 export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function extractMilliseconds(ms) {
+  const result = [];
+  let remainingValue = ms;
+  for (let i = 0; i < constants.timeConvertionUnits.length; i++) {
+    if (remainingValue <= 0) break;
+    const curUnit = constants.timeConvertionUnits[i];
+    let  dr = remainingValue / curUnit.value;
+    if (dr >= 1) {
+      dr = Math.floor(dr);
+      remainingValue -= dr * curUnit.value;
+    }
+    if (dr >= 1 || !constants.timeConvertionUnits[i + 1]) {
+      result.push({
+        unit: curUnit,
+        value: dr
+      });
+      if (!constants.timeConvertionUnits[i + 1]) i--;
+      if (dr < 1) break;
+    }
+  }
+  return result;
 }

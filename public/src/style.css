@@ -799,6 +799,151 @@ body {
     cursor: pointer;
 }
 
+/*Datetime - Display*/
+.display-block-enddate-area {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    background-color: #e3e3e3;
+    border-radius: 5px;
+    box-shadow: var(--shadow-inset-default);
+    width: 100%;
+    height: fit-content;
+    padding: 7px;
+    margin: 4px 0px;
+}
+
+.display-block-enddate-slider {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 2px;
+    width: 100%;
+    height: fit-content;
+}
+
+.display-block-enddate-slider-unit {
+    --border-size: 3px;
+    position: relative;
+    background-color: rgb(226, 226, 226);
+    box-shadow: var(--shadow-inset-default);
+    flex-shrink: 0; 
+    flex-basis: 0;
+    width: auto;
+    height: 15px;
+}
+
+.display-block-enddate-slider-unit:first-child {
+    border-top-left-radius: var(--border-size);
+}
+
+
+.display-block-enddate-slider-unit:last-child {
+    border-top-right-radius: var(--border-size);
+}
+
+.display-block-enddate-slider-unit .percent-fill {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgb(255, 255, 255);
+    box-shadow: var(--shadow-med);
+    height: 100%;
+}
+
+.display-block-enddate-slider-unit.tse .percent-fill {
+    background-color: rgb(255, 243, 184);
+}
+
+.display-block-enddate-slider-unit:first-child .percent-fill {
+    border-top-left-radius: var(--border-size);
+}
+
+.display-block-enddate-slider-unit:last-child .percent-fill {
+    border-top-right-radius: var(--border-size);
+}
+
+.display-block-enddate-slider-unit.remain-time {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    overflow: hidden;
+    text-overflow:clip;
+    white-space: nowrap;
+    height: fit-content;
+    padding: 4px;
+}
+
+.display-block-enddate-rt-unit {
+    --unit-color: rgb(180, 180, 180);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: var(--unit-color) 1px solid;
+    border-radius: 3px;
+    color: rgb(111, 107, 107);
+    text-shadow: var(--shadow-min);
+    font-size: 12.5px;
+    font-weight: bold;
+    padding: 0px 4px;
+}
+
+.display-block-enddate-deadline-area {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    height: fit-content;
+    margin-top: 4px;
+}
+
+.display-block-enddate-deadline-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 1px;
+    width: fit-content;
+    height: fit-content;
+}
+
+.display-block-enddate-deadline-item {
+    background-color: rgba(255, 255, 255, 0.75);
+    border: rgb(208, 208, 208) 1px solid;
+    border-radius: 3px;
+    color: #524d4f;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0px 4px;
+    box-shadow: var(--shadow-min);
+}
+
+
+/*Datetime - Editor*/
+.inline-value-editor-datetime-area {
+    display: inline-block;
+    background-color: rgb(234, 234, 234);
+    border: rgb(209, 209, 209) 1px solid;
+    border-radius: 5px;
+    padding: 0px 4px !important;
+    margin-left: 4px;
+}
+
+.inline-value-editor-datetime-input {
+    background: transparent;
+}
+
+.inline-value-editor-datetime-input:focus-within {
+    outline: none;
+}
+
 /*Panel - Display*/
 .display-block-panel {
     display: block;

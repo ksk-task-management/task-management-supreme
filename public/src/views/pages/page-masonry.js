@@ -1,9 +1,9 @@
 import * as localData from "../../databases/local-data";
-import * as cardDataManage from "../../items/card-data-manage";
+import * as cardDataManage from "../../configs/card-data-manage";
 import * as cardDisplay from "../../views/renders/card-displayers";
 import * as pages from "../pages";
 import * as viewCardEditor from "../editors/view-card-editor";
-import { defaultCardStatus, elementTemplates } from "../../items/cards";
+import { defaultCardStatus, elementTemplates } from "../../configs/cards";
 
 export const masonryContainer = document.getElementById('masonrylist-container');
 const gapSize = 5;

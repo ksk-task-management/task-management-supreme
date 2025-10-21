@@ -1,5 +1,5 @@
-import * as cardDataManage from "../../items/card-data-manage";
-import { defaultCardStatus } from "../../items/cards";
+import * as cardDataManage from "../../configs/card-data-manage";
+import { defaultCardStatus } from "../../configs/cards";
 import * as pages from "../pages";
 import * as localData from "../../databases/local-data";
 import * as viewCardEditor from "../editors/view-card-editor"

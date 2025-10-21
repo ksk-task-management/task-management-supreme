@@ -1,5 +1,5 @@
 import { formatBytes } from "../../utils/helpers";
-import * as cardTemplate from "../../items/cards";
+import * as cardTemplate from "../../configs/cards";
 import * as contextMenu from "../context-menu";
 
 export function getEditor_Enum(dataset, template, target, prefixIcon = null, suffixIcon = null) {

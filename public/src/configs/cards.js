@@ -1,4 +1,4 @@
-import { setColorOpacity, generateShortId, setColorPart, hyperflatArray, formatBytes } from "../utils/helpers";
+import { setColorOpacity, generateShortId, setColorPart, hyperflatArray, formatBytes, extractMilliseconds } from "../utils/helpers";
 import { closeModalByID, createModalWindow } from "../views/modals";
 import * as cardEditor from "../views/editors/card-editor";
 import * as cardDataObjectEditor from "../views/editors/card-data-obj-editor";
@@ -440,7 +440,7 @@ export const elementTemplates = [
                 }
             }
         }
-    },
+    },/*,
     {
         key: ["start-date"],
         icon: () => "calendar_add_on",
@@ -471,26 +471,156 @@ export const elementTemplates = [
 
             }
         }
-    },
+    },*/
     {
-        key: ["end-date", "deadline"],
+        key: ["end-date"],
         icon: () => "calendar_clock",
         value: [
             {
-                name: "End Date",
-                refName: "endDate",
+                name: "Start Date",
+                refName: "date_start",
                 type: "datetime",
                 initialValue: () => {
                     return {
                         key: "datetime",
-                        value: new Date()
+                        value: new Date().toISOString()
+                    }
+                },
+                isOmittable: true
+            },
+            {
+                name: "End Date",
+                refName: "date_end",
+                type: "datetime",
+                initialValue: () => {
+                    return {
+                        key: "datetime",
+                        value: new Date().toISOString()
                     }
                 }
             }
         ],
         return: {
             "html": {
+                value: (template, dat) => {
+                    const dateStartString = cardDataManage.getReturnValue('datetime', dat, "date_start", "value") ?? undefined;
+                    const dateEndString = cardDataManage.getReturnValue('datetime', dat, "date_end", "value") ?? undefined;
+                    const dateStart = dateStartString ? new Date(dateStartString) : undefined;
+                    const dateEnd = dateEndString ? new Date(dateEndString) : undefined;
 
+                    const today = new Date();
+                    const totalTimeUnits = [];
+                    if (dateStart && dateEnd) {
+                        if (dateStart > today) {
+                            const tTS = extractMilliseconds(dateStart - today);
+                            totalTimeUnits.push(tTS);
+                        }
+
+                        if (dateEnd > dateStart) {
+                            const tSE = extractMilliseconds(dateEnd - dateStart);
+                            tSE.forEach(tseu => {
+                                tseu.customClass = "tse";
+                            });
+                            totalTimeUnits.push(tSE);
+                        }
+                    }
+                    else if (dateEnd) {
+                        if (dateEnd > today) {
+                            const tTE = extractMilliseconds(dateEnd - today);
+                            totalTimeUnits.push(tTE);
+                        }
+                    }
+
+                    const deadlineAreaHtml = document.createElement('div');
+                    deadlineAreaHtml.classList.add('display-block-enddate-area');
+                    if (totalTimeUnits.length > 0) {
+                        
+
+                        //Slider
+                        const timeSliderHolderHtml = document.createElement('div');
+                        timeSliderHolderHtml.classList.add('display-block-enddate-slider');
+                        deadlineAreaHtml.appendChild(timeSliderHolderHtml);
+
+                        const timeRemainingHolderHtml = document.createElement('div');
+                        timeRemainingHolderHtml.classList.add('display-block-enddate-slider');
+                        deadlineAreaHtml.appendChild(timeRemainingHolderHtml);
+
+                        totalTimeUnits.forEach(unitset => {
+                            unitset.forEach(unit => {
+                                const timeSliderUnitHtml = document.createElement('div');
+                                timeSliderUnitHtml.classList.add('display-block-enddate-slider-unit');
+                                timeSliderUnitHtml.style.flexGrow = unit.unit.value * Math.ceil(unit.value);
+                                timeSliderHolderHtml.appendChild(timeSliderUnitHtml);
+
+                                if (unit.customClass) {
+                                    timeSliderUnitHtml.classList.add(unit.customClass.toLowerCase());
+                                }
+
+                                const perUnitRatio = Math.min(1, unit.value);
+                                const timeSliderUnitPercentHtml = document.createElement('div');
+                                timeSliderUnitPercentHtml.classList.add('percent-fill');
+                                timeSliderUnitPercentHtml.style.width = `${perUnitRatio * 100}%`;
+                                timeSliderUnitHtml.appendChild(timeSliderUnitPercentHtml);
+                            });
+
+                            //Time Remains
+                            const conjoinedUnits = [];
+                            let totalUnitRatio = 0;
+                            unitset.forEach(unit => {
+                                totalUnitRatio += unit.value * unit.unit.value;
+                                if (conjoinedUnits.length > 0 && conjoinedUnits[conjoinedUnits.length - 1].unit.name === unit.unit.name) {
+                                    conjoinedUnits[conjoinedUnits.length - 1].value += unit.value;
+                                }
+                                else {
+                                    conjoinedUnits.push(unit);
+                                }
+                            });
+                            const timeRemainUnitHtml = document.createElement('div');
+                            timeRemainUnitHtml.classList.add('display-block-enddate-slider-unit', 'remain-time');
+                            timeRemainUnitHtml.style.flexGrow = totalUnitRatio;
+                            timeRemainingHolderHtml.appendChild(timeRemainUnitHtml);
+
+                            conjoinedUnits.forEach(unit => {
+                                const rUHtml = document.createElement('span');
+                                rUHtml.classList.add('display-block-enddate-rt-unit');
+                                const uVal = unit.value - Math.floor(unit.value) > 0 ? unit.value.toFixed(1) : unit.value;
+                                rUHtml.textContent = `${uVal}${unit.unit.abbreviation}`;
+                                timeRemainUnitHtml.appendChild(rUHtml);
+                            });
+                        });
+                    }
+
+                    //Actual deadline
+                    const totalDeadlines = [];
+                    if (dateStart) totalDeadlines.push(dateStart);
+                    if (dateEnd) totalDeadlines.push(dateEnd);
+                    if (totalDeadlines.length > 0) {
+                        const deadlineHolderHtml = document.createElement('div');
+                        deadlineHolderHtml.classList.add('display-block-enddate-deadline-area');
+                        totalDeadlines.forEach(dl => {
+                            const deadlineGroupHtml = document.createElement('div');
+                            deadlineGroupHtml.classList.add('display-block-enddate-deadline-group');
+                            const totalDateItems = [];
+                            totalDateItems.push({value: dl.toLocaleDateString('en-US', { weekday: 'short' })});
+                            totalDateItems.push({value: `${dl.getDate()} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dl.getMonth()]} ${dl.getFullYear()}`});
+                            totalDateItems.push({value: `${dl.getHours()}:${dl.getMinutes()}`});
+                            totalDateItems.forEach(tdi => {
+                                const tdiHtml = document.createElement('span');
+                                tdiHtml.classList.add('display-block-enddate-deadline-item');
+                                tdiHtml.textContent = tdi.value;
+                                deadlineGroupHtml.appendChild(tdiHtml);
+                            });
+                            deadlineHolderHtml.appendChild(deadlineGroupHtml);
+                        });
+                        deadlineAreaHtml.appendChild(deadlineHolderHtml);
+                    }
+                    else {
+
+                    }
+
+                    return deadlineAreaHtml;
+                }
             },
             "block": {
 
@@ -2442,6 +2572,71 @@ export const elementTemplates = [
                         return result;
                     }
                     return "No file selected";
+                }
+            }
+        }
+    },
+    {
+        key: ["datetime"],
+        icon: () => "date_range",
+        return: {
+            "datetime": {
+                value: (template, dat) => dat.value,
+                editor: (template, dat) => {
+                    let dateValue = undefined;
+                    if (dat.value) {
+                        dateValue = new Date(dat.value);
+                    }
+                    else {
+                        dateValue = new Date();
+                        dat.value = dateValue.toISOString();
+                    }
+                    const formatDateForInputFunc = (date) => {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const minutes = String(date.getMinutes()).padStart(2, '0');
+                        return `${year}-${month}-${day}T${hours}:${minutes}`;
+                    };
+
+                    const dateAreaHtml = document.createElement('span');
+                    dateAreaHtml.classList.add('inline-value-editor-datetime-area');
+
+                    //File Input
+                    const fileInput = document.createElement('input');
+                    fileInput.classList.add('inline-value-editor-datetime-input');
+                    fileInput.id = "input-date-select";
+                    fileInput.type = 'datetime-local';
+                    fileInput.addEventListener('change', ev => {
+                        const date = new Date(ev.target.value);
+                        dat.value = date.toISOString();
+                    });
+                    fileInput.value = formatDateForInputFunc(dateValue);
+                    dateAreaHtml.appendChild(fileInput);
+                    return dateAreaHtml;
+                }
+            },
+            "text": {
+                value: (template, dat) => {
+                    let dateValue = undefined;
+                    if (dat.value) {
+                        dateValue = new Date(dat.value);
+                    }
+                    else {
+                        dateValue = new Date();
+                    }
+                    if (!dateValue)
+                        return "Unknown Date Format";
+                    const formatDateForInputFunc = (date) => {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const minutes = String(date.getMinutes()).padStart(2, '0');
+                        return `${day}/${month}/${year} ${hours}:${minutes}`;
+                    };
+                    return formatDateForInputFunc(dateValue);
                 }
             }
         }

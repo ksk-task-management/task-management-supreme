@@ -2,7 +2,7 @@ import { appendEvent } from "../events/events";
 import { userData } from "../main";
 import { forceRenderOpeningPage, toggleNotification } from "../views/pages";
 import { postCloudData } from "./google-sheets";
-import * as cardDataManage from "../items/card-data-manage";
+import * as cardDataManage from "../configs/card-data-manage";
 
 export var localProjectData = null;
 export var localCardData = null;

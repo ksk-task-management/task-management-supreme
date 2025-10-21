@@ -1,8 +1,8 @@
-import * as inlineCommands from "../../items/inline-commands";
+import * as inlineCommands from "../../configs/inline-commands";
 import * as contextMenu from "../context-menu";
-import * as cardDataManage from "../../items/card-data-manage";
+import * as cardDataManage from "../../configs/card-data-manage";
 import * as viewCardEditor from "./view-card-editor";
-import { elementTemplates } from "../../items/cards";
+import { elementTemplates } from "../../configs/cards";
 
 export function renderExistingBlocks(parentHtml, dataArray) {
     if (!parentHtml || !dataArray || dataArray.length <= 0)

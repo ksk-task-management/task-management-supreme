@@ -1,8 +1,8 @@
 import * as cardEditor from "../editors/card-editor";
-import * as cardDataManage from "../../items/card-data-manage";
+import * as cardDataManage from "../../configs/card-data-manage";
 import * as localData from "../../databases/local-data";
 import { hyperflatArray } from "../../utils/helpers";
-import { elementTemplates } from "../../items/cards";
+import { elementTemplates } from "../../configs/cards";
 import { closeModalByID, createModalWindow } from "../modals";
 import { forceRenderOpeningPage } from "../pages";
 
