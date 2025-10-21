@@ -17,6 +17,48 @@ export function displayCard(cardDataArray) {
         cardHtml = displayGeneralCard(cardDataArray);
     }
 
+    const currentPage = pages.getLastPage();
+    const cardParent = hyperflatArray(cardDataManage.getBlocks(cardDataArray, 'parent')?.map(pb => cardDataManage.getReturnValue("*", pb, "*", "value")) ?? null, {renderValues: true, excludedNulls: true});
+    const parentIDs = cardParent.filter(cpid => {
+        if (!currentPage.options?.env)
+            return true;
+        return cpid !== currentPage.options.env;
+    });
+    if (parentIDs.length > 0) {
+        const parentAreaHtml = document.createElement('div');
+        parentAreaHtml.classList.add('masonry-card-parent-area');
+        parentIDs.forEach(puid => {
+            const parentCard = localData.localCardData.find(c => {
+                const cuid = cardDataManage.getDataUID(c);
+                if (!cuid) return false;
+                return puid === cuid;
+            });
+            if (parentCard) {
+                const parentTitle = hyperflatArray(cardDataManage.getBlocks(parentCard, 'title')?.map(tb => cardDataManage.getReturnValue('text', tb, '*', 'value')) ?? null, {renderValues: true, excludedNulls: true});
+                if (parentTitle.length > 0) {
+                    parentTitle.forEach((title, idx) => {
+                        const cardParentHtml = document.createElement("div");
+                        cardParentHtml.classList.add('masonry-card-parent');
+                        cardParentHtml.textContent = title;
+                        parentAreaHtml.appendChild(cardParentHtml);
+                        cardParentHtml.addEventListener('click', ev => {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                            pages.displayPage("masonry-list", {
+                                env: puid
+                            });
+                        });
+                    });
+                }
+            }
+        });
+        if (cardHtml.hasChildNodes()) 
+            cardHtml.insertBefore(parentAreaHtml, cardHtml.firstChild);
+        else 
+            cardHtml.appendChild(parentAreaHtml);
+    }
+    //if (pages.getLastPage().)
+
     if (cardHtml) {
         //Custom Stylings
         const customStylings = hyperflatArray(cardDataManage.getBlocks(cardDataArray, "card-styling")?.map(sb => cardDataManage.getReturnValue("*", sb, "styles", "value")) ?? null, {renderValues: true, excludedNulls: true})

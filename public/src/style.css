@@ -1574,6 +1574,26 @@ body {
     border-bottom-right-radius: 5px;
 }
 
+/*Card UIs - Parenting*/
+.masonry-card-parent-area {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+    width: 100%;
+    height: fit-content;
+    margin-bottom: 1px;
+}
+
+.masonry-card-parent {
+    color: rgb(193, 191, 191);
+    text-shadow: var(--shadow-inset-default);
+    font-size: 12px;
+    font-weight: bolder;
+    cursor: pointer;
+    transition: var(--transition-time);
+}
+
 /*Card stylings*/
 .masonry-card-blurred {
     --blur-amount: 30px;
