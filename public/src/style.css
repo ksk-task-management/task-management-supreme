@@ -804,7 +804,8 @@ body {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    background-color: #e3e3e3;
+    background-color: #eaeaea;
+    border: rgb(201, 201, 201) 2px dashed;
     border-radius: 5px;
     box-shadow: var(--shadow-inset-default);
     width: 100%;
@@ -907,11 +908,20 @@ body {
 .display-block-enddate-deadline-group {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
     align-items: center;
+    justify-content: center;
     gap: 1px;
     width: fit-content;
     height: fit-content;
+}
+
+.display-block-enddate-deadline-group:not(:last-child)::after {
+    display: inline-block;
+    content: "-";
+    color: rgb(177, 177, 177);
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0px 4px;
 }
 
 .display-block-enddate-deadline-item {
@@ -919,7 +929,7 @@ body {
     border: rgb(208, 208, 208) 1px solid;
     border-radius: 3px;
     color: #524d4f;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     padding: 0px 4px;
     box-shadow: var(--shadow-min);
@@ -1111,6 +1121,7 @@ body {
     box-shadow: inset 0px 2px 2px rgb(0,0,0,0.3), var(--shadow-min);
     margin-right: 4px;
     vertical-align: middle;
+    cursor: pointer;
 }
 
 .display-block-checklist-toggle-area.checked {
@@ -1736,7 +1747,9 @@ body {
     font-size: 12px;
     font-weight: bolder;
     cursor: pointer;
-    transition: var(--transition-time);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /*Card stylings*/
