@@ -62,7 +62,7 @@ export const defaultCardStatus = [
         status: "In Progress",
         icon: "offline_bolt",
         color: "#7025e8",
-        scoreAdjust: 2,
+        scoreAdjust: 10,
         progressPercent: 50,
         quickButtons: [
             {
@@ -82,7 +82,7 @@ export const defaultCardStatus = [
     {
         status: "Pending Background",
         icon: "cloud_circle",
-        scoreAdjust: 10,
+        scoreAdjust: 25,
         progressPercent: 45,
         color: "#4790d8ff",
         quickButtons: [
@@ -100,7 +100,7 @@ export const defaultCardStatus = [
         status: "Completed",
         icon: "check_circle",
         color: "#25e88d",
-        scoreAdjust: 0,
+        scoreAdjust: 450,
         progressPercent: 100,
     },
     {
@@ -108,7 +108,7 @@ export const defaultCardStatus = [
         icon: "nest_farsight_heat",
         color: "#1bdabaff",
         progressPercent: 100,
-        scoreAdjust: 5, 
+        scoreAdjust: 15, 
         quickButtons: [
             {
                 icon: "wand_stars",

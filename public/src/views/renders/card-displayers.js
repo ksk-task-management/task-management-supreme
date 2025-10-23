@@ -17,6 +17,14 @@ export function displayCard(cardDataArray) {
         cardHtml = displayGeneralCard(cardDataArray);
     }
 
+    const cardTopToolbarHtml = document.createElement('div');
+    cardTopToolbarHtml.classList.add('display-card-toolbar-top');
+    if (cardHtml.hasChildNodes())
+        cardHtml.insertBefore(cardTopToolbarHtml, cardHtml.firstChild);
+    else 
+        cardHtml.appendChild(cardTopToolbarHtml);
+
+    //Top toolbar - Parent
     const currentPage = pages.getLastPage();
     const cardParent = hyperflatArray(cardDataManage.getBlocks(cardDataArray, 'parent')?.map(pb => cardDataManage.getReturnValue("*", pb, "*", "value")) ?? null, {renderValues: true, excludedNulls: true});
     const parentIDs = cardParent.filter(cpid => {
@@ -25,8 +33,6 @@ export function displayCard(cardDataArray) {
         return cpid !== currentPage.options.env;
     });
     if (parentIDs.length > 0) {
-        const parentAreaHtml = document.createElement('div');
-        parentAreaHtml.classList.add('masonry-card-parent-area');
         parentIDs.forEach(puid => {
             const parentCard = localData.localCardData.find(c => {
                 const cuid = cardDataManage.getDataUID(c);
@@ -40,7 +46,7 @@ export function displayCard(cardDataArray) {
                         const cardParentHtml = document.createElement("div");
                         cardParentHtml.classList.add('masonry-card-parent');
                         cardParentHtml.textContent = title;
-                        parentAreaHtml.appendChild(cardParentHtml);
+                        cardTopToolbarHtml.appendChild(cardParentHtml);
                         cardParentHtml.addEventListener('click', ev => {
                             ev.stopPropagation();
                             ev.preventDefault();
@@ -52,12 +58,7 @@ export function displayCard(cardDataArray) {
                 }
             }
         });
-        if (cardHtml.hasChildNodes()) 
-            cardHtml.insertBefore(parentAreaHtml, cardHtml.firstChild);
-        else 
-            cardHtml.appendChild(parentAreaHtml);
     }
-    //if (pages.getLastPage().)
 
     if (cardHtml) {
         //Custom Stylings

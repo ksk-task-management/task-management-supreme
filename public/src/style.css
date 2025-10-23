@@ -1731,14 +1731,16 @@ body {
 }
 
 /*Card UIs - Parenting*/
-.masonry-card-parent-area {
+.display-card-toolbar-top {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: end;
     gap: 2px;
     width: 100%;
     height: fit-content;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
 
 .masonry-card-parent {
@@ -1750,6 +1752,21 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1 1 100%;
+}
+
+.masonry-card-score-display {
+    display: block;
+    width: fit-content !important;
+    height: fit-content;
+    white-space: nowrap;
+    background-color: rgb(226, 226, 226);
+    border: rgb(188, 187, 187) 1.5px solid;
+    border-radius: 5px;
+    color: rgb(161, 161, 161);
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0px 6px;
 }
 
 /*Card stylings*/

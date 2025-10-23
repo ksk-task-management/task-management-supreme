@@ -35,6 +35,9 @@ export function isExceedingViewport(elementBound) {
   );
 }
 
+/**
+ * @param {object} options {excludedNulls: boolean, renderValues: boolean}
+*/
 export function hyperflatArray(data, options = null) {
   const excludedNulls = options && options.excludedNulls === true;
   const renderValues = options && options.renderValues === true;

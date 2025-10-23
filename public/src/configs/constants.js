@@ -1,3 +1,10 @@
+//Card scores
+export const scorePerDaysToEnd = 200;
+export const scorePerDaysPassedStart = 95;
+export const scorePerDaysPassedEnd = 120;
+
+
+//Datetime
 export const timeConvertionUnits = [
   {
     name: "Year",
