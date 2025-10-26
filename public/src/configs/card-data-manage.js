@@ -1,4 +1,4 @@
-import { generateShortId } from "../utils/helpers";
+import { generateShortId, hyperflatArray } from "../utils/helpers";
 import { elementTemplates, majorCardTypes } from "./cards";
 import * as localData from "../databases/local-data";
 
@@ -186,7 +186,16 @@ export function getDataUID(cardDataArray) {
     return cardDataArray.find(cb => cb.key === 'uid')?.value?.find(cbv => cbv.refName === 'uid')?.value?.value;
 }
 
-export function getBlocks(cardDataArray, keys) {
+export function getDataTitle(cardDataArray) {
+    return hyperflatArray(getBlocks(cardDataArray, "title")?.map(ct => getReturnValue('text', ct, 'title', "value")) ?? [], {excludedNulls: true, renderValues: true}).filter(s => typeof s === 'string')?.join(' ');
+}
+
+/***
+ * @param {object} [options=null] {notFindUnderCompleteSections: boolean, notFindUnderKeys: [block-keys]}
+ */
+export function getBlocks(cardDataArray, keys, options = null) {
+    const isNotFindUnderKeys = options?.notFindUnderKeys ?? undefined;
+
     var result = null;
     const pracKeys = Array.isArray(keys) ? keys : [keys];
     const isByPassKeys = pracKeys.some(key => key.trim() === "*");
@@ -212,6 +221,11 @@ export function getBlocks(cardDataArray, keys) {
             });
         }
         else if (Object.prototype.toString.call(firstData) === '[object Object]') {
+            if (isNotFindUnderKeys && isNotFindUnderKeys.length > 0 && firstData.key) {
+                if (isNotFindUnderKeys.includes(firstData.key))
+                    continue;
+            }
+
             Object.keys(firstData).forEach(key => {
                 const child = firstData[key];
                 if (isObject(child))

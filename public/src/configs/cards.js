@@ -1,9 +1,10 @@
-import { setColorOpacity, generateShortId, setColorPart, hyperflatArray, formatBytes, extractMilliseconds } from "../utils/helpers";
+import { setColorOpacity, generateShortId, setColorPart, hyperflatArray, formatBytes, extractMilliseconds, ColorHSL, getUpperColor } from "../utils/helpers";
 import { closeModalByID, createModalWindow } from "../views/modals";
 import * as cardEditor from "../views/editors/card-editor";
 import * as cardDataObjectEditor from "../views/editors/card-data-obj-editor";
 import * as cardDataManage from "./card-data-manage";
 import * as localData from "../databases/local-data";
+import * as constants from "./constants";
 import * as contextMenu from "../views/context-menu";
 import * as settings from "../views/editors/view-card-settings";
 import { userData } from "../main";
@@ -273,8 +274,14 @@ export const elementTemplates = [
             {
                 name: "Inheritance",
                 refName: "inheritance",
-                type: "set-*",
-                isOmittable: true
+                type: "set-html",
+                isOmittable: true,
+                initialValue: () => {
+                    return {
+                        key: "set",
+                        value: []
+                    }
+                }
             }
             //Moved under the "Style" block that falls under the inheritance value
             /*{
@@ -319,18 +326,20 @@ export const elementTemplates = [
         return: {
             "html": {
                 //Dat is the Key-Value Pair
-                value: (template, dat) => {
+                value: (template, dat, options) => {
                     const newHtml = document.createElement('div');
                     newHtml.classList.add('area-horizontal');
-                    var titleElement = cardDataManage.getReturnValue("html|text", dat, "title", "value");
-                    if (typeof titleElement === 'string') {
-                        const newStringDisplay = document.createElement('span');
-                        newStringDisplay.classList.add('txt-title');
-                        newStringDisplay.textContent = titleElement;
-                        titleElement = newStringDisplay;
-                    }
-                    if (titleElement instanceof Node){
-                        newHtml.appendChild(titleElement);
+                    var titleElement = cardDataManage.getReturnValue("text", dat, "title", "value", options) ?? "Untitled";
+
+                    const newStringDisplay = document.createElement('span');
+                    newStringDisplay.classList.add('txt-title');
+                    newStringDisplay.textContent = titleElement;
+                    newHtml.appendChild(newStringDisplay);
+
+                    if (options && options.cardHtml) {
+                        const cardColor = getUpperColor(options.cardHtml);
+                        const colTitle = new ColorHSL().fromHex(cardColor).modifyL(-65).modifyS(-20);
+                        newStringDisplay.style.color = colTitle.getHSLString();
                     }
                     return newHtml;
                 }
@@ -371,16 +380,41 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
-                    //console.log("--Getting Text");
+                value: (template, dat, options) => {
                     const headerText = cardDataManage.getReturnValue("text", dat, "text", "value") ?? "<Header>";
-                    //console.log("--Getting Format");
                     let headerFormat = cardDataManage.getReturnValue("text", dat, "format", "value")?.toLowerCase() ?? "h3";
                     if (headerFormat.trim().length <= 0)
                         headerFormat = "h3";
+
+                    const headerModifiers = [
+                        {
+                            format: ["h1", "h2", "h3", "h4"],
+                            lMod: -65
+                        },
+                        {
+                            format: ["h5"],
+                            lMod: -58
+                        },
+                        {
+                            format: ["h6"],
+                            lMod: -45
+                        }
+                    ];
+
                     const headerHtml = document.createElement("div");
                     headerHtml.classList.add('txt-header', headerFormat);
                     headerHtml.textContent = headerText;
+                    const cardColor = options && options.cardHtml ? getUpperColor(options.cardHtml) : "#ffffff";
+                    let colHeader = new ColorHSL().fromHex(cardColor).modifyS(-20);
+                    if (headerFormat) {
+                        const modifier = headerModifiers.find(mod => mod.format.includes(headerFormat.toLowerCase()));
+                        if (modifier) {
+                            if (modifier.lMod) {
+                                colHeader = colHeader.modifyL(modifier.lMod);
+                            }
+                        }
+                    }
+                    headerHtml.style.color = colHeader.getHSLString();
                     return headerHtml;
                 }
             },
@@ -473,7 +507,7 @@ export const elementTemplates = [
         }
     },*/
     {
-        key: ["end-date"],
+        key: ["end-date", "deadline"],
         icon: () => "calendar_clock",
         value: [
             {
@@ -502,7 +536,7 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
+                value: (template, dat, options) => {
                     const dateStartString = cardDataManage.getReturnValue('datetime', dat, "date_start", "value") ?? undefined;
                     const dateEndString = cardDataManage.getReturnValue('datetime', dat, "date_end", "value") ?? undefined;
                     const dateStart = dateStartString ? new Date(dateStartString) : undefined;
@@ -517,7 +551,7 @@ export const elementTemplates = [
                         }
 
                         if (dateEnd > dateStart) {
-                            const tSE = extractMilliseconds(dateEnd - dateStart);
+                            const tSE = extractMilliseconds(dateEnd - (today > dateStart ? today : dateStart));
                             tSE.forEach(tseu => {
                                 tseu.customClass = "tse";
                             });
@@ -531,11 +565,23 @@ export const elementTemplates = [
                         }
                     }
 
+                    let colBase = undefined;
+                    let colBaseBorder = undefined;
+                    if (options && options.cardHtml) {
+                        const cardColor = getUpperColor(options.cardHtml);
+                        colBase = new ColorHSL().fromHex(cardColor).modifyL(-10).modifyS(-10);
+                    }
+                    if (colBase) {
+                        colBaseBorder = colBase.modifyL(-15).modifyS(-20);
+                    }
+
                     const deadlineAreaHtml = document.createElement('div');
                     deadlineAreaHtml.classList.add('display-block-enddate-area');
+                    if (colBase) {
+                        deadlineAreaHtml.style.backgroundColor = colBase.getHSLString();
+                        deadlineAreaHtml.style.borderColor = colBaseBorder.getHSLString();
+                    }
                     if (totalTimeUnits.length > 0) {
-                        
-
                         //Slider
                         const timeSliderHolderHtml = document.createElement('div');
                         timeSliderHolderHtml.classList.add('display-block-enddate-slider');
@@ -561,6 +607,13 @@ export const elementTemplates = [
                                 timeSliderUnitPercentHtml.classList.add('percent-fill');
                                 timeSliderUnitPercentHtml.style.width = `${perUnitRatio * 100}%`;
                                 timeSliderUnitHtml.appendChild(timeSliderUnitPercentHtml);
+
+                                if (colBase) {
+                                    const colUnitBG = colBase.modifyL(-10).modifyS(-5);
+                                    timeSliderUnitHtml.style.backgroundColor = colUnitBG.getHSLString();
+                                    timeSliderUnitHtml.style.borderColor = colUnitBG.modifyL(-20).modifyS(-20).getHSLString();
+                                    timeSliderUnitPercentHtml.style.backgroundColor = colBase.modifyL(5).getHSLString();                                    
+                                }
                             });
 
                             //Time Remains
@@ -580,19 +633,35 @@ export const elementTemplates = [
                             timeRemainUnitHtml.style.flexGrow = totalUnitRatio;
                             timeRemainingHolderHtml.appendChild(timeRemainUnitHtml);
 
-                            conjoinedUnits.forEach(unit => {
+                            if (colBase) {
+                                const colUnitBG = colBase.modifyL(-20).modifyS(-25);
+                                timeRemainUnitHtml.style.backgroundColor = colUnitBG.getHSLString();
+                                timeRemainUnitHtml.style.borderColor = colUnitBG.modifyL(-10).modifyS(-10).getHSLString();
+                            }
+
+                            conjoinedUnits.forEach((unit, idx) => {
                                 const rUHtml = document.createElement('span');
                                 rUHtml.classList.add('display-block-enddate-rt-unit');
                                 const uVal = unit.value - Math.floor(unit.value) > 0 ? unit.value.toFixed(1) : unit.value;
                                 rUHtml.textContent = `${uVal}${unit.unit.abbreviation}`;
                                 timeRemainUnitHtml.appendChild(rUHtml);
+                                rUHtml.style.transform = `rotate(${(Math.random() * 2 - 1) * 1}deg)`;
+
+                                if (colBase) {
+                                    let colRUBG = colBase.modifyL(-7).modifyS(-15);
+                                    rUHtml.style.borderColor = colRUBG.modifyL(-25).modifyS(-20).getHSLString();
+                                    if (idx === 0) {
+                                        colRUBG = colRUBG.modifyL(10);
+                                    }
+                                    rUHtml.style.backgroundColor = colRUBG.getHSLString();
+                                }
                             });
                         });
                     }
 
                     //Actual deadline
                     const totalDeadlines = [];
-                    if (dateStart) totalDeadlines.push(dateStart);
+                    if (dateStart && dateStart > today) totalDeadlines.push(dateStart);
                     if (dateEnd) totalDeadlines.push(dateEnd);
                     if (totalDeadlines.length > 0) {
                         const deadlineHolderHtml = document.createElement('div');
@@ -601,8 +670,10 @@ export const elementTemplates = [
                             const deadlineGroupHtml = document.createElement('div');
                             deadlineGroupHtml.classList.add('display-block-enddate-deadline-group');
                             const totalDateItems = [];
-                            totalDateItems.push({value: dl.toLocaleDateString('en-US', { weekday: 'short' })});
-                            totalDateItems.push({value: `${dl.getDate()} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                            const dayOfWeek = dl.toLocaleDateString('en-US', { weekday: 'short' });
+                            const customColor = constants.dayOfWeekList.find(dow => dow.abbreviation === dayOfWeek)?.colorHex ?? undefined;
+                            totalDateItems.push({value: `${dayOfWeek} ${dl.getDate()}`, customColor: customColor});
+                            totalDateItems.push({value: `${["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                                                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dl.getMonth()]} ${dl.getFullYear()}`});
                             totalDateItems.push({value: `${dl.getHours()}:${dl.getMinutes()}`});
                             totalDateItems.forEach(tdi => {
@@ -610,6 +681,24 @@ export const elementTemplates = [
                                 tdiHtml.classList.add('display-block-enddate-deadline-item');
                                 tdiHtml.textContent = tdi.value;
                                 deadlineGroupHtml.appendChild(tdiHtml);
+
+                                if (tdi.customColor) {
+                                    const newColorHSL = new ColorHSL().fromHex(tdi.customColor);
+                                    tdiHtml.style.backgroundColor = newColorHSL.getHSLString();
+
+                                    const borderColorHSL = newColorHSL.modifyL(-20);
+                                    tdiHtml.style.borderColor = borderColorHSL.getHSLString();
+
+                                    tdiHtml.style.color = 'white';
+                                    tdiHtml.style.fontWeight = 'bold';
+                                    tdiHtml.style.textShadow = 'var(--shadow-min)'
+                                    tdiHtml.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.6}deg)`;
+                                }
+                                else if (colBase) {
+                                    const colTDIBG = colBase.modifyL(10);
+                                    tdiHtml.style.backgroundColor = colTDIBG.getHSLString();
+                                    tdiHtml.style.borderColor = colTDIBG.modifyL(-25).modifyS(-20).getHSLString();
+                                }
                             });
                             deadlineHolderHtml.appendChild(deadlineGroupHtml);
                         });
@@ -701,18 +790,14 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => 
+                value: (template, dat, options) => 
                 {
                     const arrayContainerHtml = document.createElement('div');
                     arrayContainerHtml.classList.add('display-container');
                     arrayContainerHtml.style.width = '100%';
                     arrayContainerHtml.style.height = 'fit-content';
 
-                    //console.log("Getting Array Result: ", dat);
-                    const testValue = cardDataManage.getReturnValue('*', dat, 'items', "value");
-                    //console.log("Test array element", testValue);
-
-                    const initialValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
+                    const initialValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value", options);
                     const setValue = [initialValue];
                     while (setValue.some(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)))) {
                         const idxNestedArray = setValue.findIndex(v => cardDataManage.isMatter(v) && (v.valueID || Array.isArray(v)));
@@ -721,8 +806,7 @@ export const elementTemplates = [
                         nestedValue.forEach(nv => {
                             if (!cardDataManage.isMatter(nv))
                                 return;
-                            const r = cardDataManage.getReturnValue("html|*", nv, "*", "value");
-                            //console.log("Array Element", nv, r);
+                            const r = cardDataManage.getReturnValue("html|*", nv, "*", "value", options);
                             if (!cardDataManage.isMatter(r))
                                 return;
                             if (Array.isArray(r)) {
@@ -734,25 +818,19 @@ export const elementTemplates = [
                         setValue.splice(idxNestedArray, 1, ...tempResult);
                     }
 
-                    //console.log("Array value 2", setValue);
-
                     setValue?.forEach(valValue => {
-                        //May be use valueType = "*" but afraid of unexoected results
                         if (!valValue) return;
                         const valContainer = document.createElement('div');
                         valContainer.classList.add('display-block-array-item');
-                        //valContainer.dataset.valueID = val
-                        /*valContainer.style.display = 'inline-block';
-                        valContainer.style.width = 'fit-content';
-                        valContainer.style.maxWidth = '100%';
-                        valContainer.style.height = 'fit-content';
-                        valContainer.style.backgroundColor = 'white';
-                        valContainer.style.border = '1px solid #c3c3c3';
-                        valContainer.style.borderRadius = '5px';
-                        valContainer.style.boxShadow = 'var(--shadow-min)';
-                        valContainer.style.padding = '3px 6px';
-                        valContainer.style.margin = '2px 2px';*/
                         arrayContainerHtml.appendChild(valContainer);
+
+                        if (options && options.cardHtml) {
+                            const cardColor = getUpperColor(options.cardHtml);
+                            const colItemBG = new ColorHSL().fromHex(cardColor);
+                            valContainer.style.backgroundColor = colItemBG.getHex();
+                            const colItemBorder = colItemBG.modifyL(-20).modifyS(-20);
+                            valContainer.style.borderColor = colItemBorder.getHex();
+                        }
 
                         if (valValue instanceof Node) {
                             valContainer.appendChild(valValue);
@@ -811,15 +889,15 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
-                    var setValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value");
+                value: (template, dat, options) => {
+                    var setValue = cardDataManage.getReturnValue("html|set-*", dat, "items", "value", options);
                     const itemHtmlArray = [];
                     if (setValue && !(setValue instanceof Node)) {
                         if (Array.isArray(setValue)) {
                             const arrayDistTemplate = elementTemplates.find(et => et.key.includes("array"));
                             const arraySatisfy = cardDataManage.checkValueReturnSatisfaction(arrayDistTemplate, "html");
                             if (arraySatisfy && arraySatisfy.length > 0) {
-                                setValue = arraySatisfy[0].value(arrayDistTemplate, dat) ?? null;
+                                setValue = arraySatisfy[0].value(arrayDistTemplate, dat, options) ?? null;
                             }
                         }
                     }
@@ -856,17 +934,15 @@ export const elementTemplates = [
                     if (itemHtmlArray.length > 0){
                         itemHtmlArray.forEach((ve, idx) => {
                             const numBadge = document.createElement('span');
-                            numBadge.classList.add('display-block-numberedlist-numbadge', 'num-badge');
-                            /*numBadge.classList.add('num-badge');
-                            numBadge.style.backgroundColor = '#787a7d';
-                            numBadge.style.color = 'white';
-                            numBadge.style.borderRadius = '5px';
-                            numBadge.style.fontSize = '14px';
-                            numBadge.style.fontWeight = 'bold';
-                            numBadge.style.padding = '1px 6px';
-                            numBadge.style.marginRight = '4px';*/
+                            numBadge.classList.add('display-block-numberedlist-numbadge', );
                             numBadge.textContent = (idx + 1).toString();
                             ve.prepend(numBadge);
+
+                            if (options && options.cardHtml) {
+                                const cardColor = getUpperColor(options.cardHtml);
+                                const colNumBadgeBG = new ColorHSL().fromHex(cardColor).modifyL(-52);
+                                numBadge.style.backgroundColor = colNumBadgeBG.getHSLString();
+                            }
                         });
                     }
                     return setValue;
@@ -909,8 +985,8 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
-                    const itemArray = [cardDataManage.getReturnValue("set-*", dat, "items", "value")];
+                value: (template, dat, options) => {
+                    const itemArray = [cardDataManage.getReturnValue("set-*", dat, "items", "value", options)];
                     //console.log("Test Checklist Set: ", itemArray);
                     const displayOnlyUnfinished = cardDataManage.getReturnValue('boolean', dat, 'display_only_incomplete', "value") ?? true;
                     //Unpack Set/Array
@@ -936,7 +1012,7 @@ export const elementTemplates = [
                             return;
                         if (displayOnlyUnfinished && item.isComplete === true)
                             return;
-                        let itemDisplayHtml = cardDataManage.getReturnValue('html|text', item, null, "value") ?? undefined;
+                        let itemDisplayHtml = cardDataManage.getReturnValue('html|text', item, null, "value", options) ?? undefined;
                         if (itemDisplayHtml && typeof itemDisplayHtml === 'string') {
                             const stringHtml = document.createElement('span');
                             stringHtml.textContent = itemDisplayHtml;
@@ -944,6 +1020,7 @@ export const elementTemplates = [
                         }
                         if (!cardDataManage.isMatter(itemDisplayHtml))
                             return;
+
                         const itemHtml = document.createElement('span');
                         itemHtml.classList.add('display-block-array-item');
 
@@ -976,8 +1053,17 @@ export const elementTemplates = [
                                 forceRenderOpeningPage();
                             }
                         });
-
                         itemHtml.appendChild(itemDisplayHtml);
+                        if (options && options.cardHtml) {
+                            const cardColor = getUpperColor(options.cardHtml);
+                            const colItemBG = new ColorHSL().fromHex(cardColor);
+                            itemHtml.style.backgroundColor = colItemBG.getHex();
+                            const colItemBorder = colItemBG.modifyL(-20).modifyS(-20);
+                            itemHtml.style.borderColor = colItemBorder.getHex();
+
+                            checkListToggleHtml.style.backgroundColor = colItemBorder.getHex();
+                        }
+
                         containerHtml.appendChild(itemHtml);
                     });
                     return containerHtml;
@@ -1006,11 +1092,11 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
-                    let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "*", "value") ?? [];
+                value: (template, dat, options) => {
+                    let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "*", "value", options) ?? [];
                     if (!Array.isArray(htmlArray))
                         htmlArray = [htmlArray];
-                    htmlArray = htmlArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value")).filter(el => cardDataManage.isMatter(el));
+                    htmlArray = htmlArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value", options)).filter(el => cardDataManage.isMatter(el));
                     const galleryHtml = document.createElement('div');
                     galleryHtml.classList.add('display-block-list-gallery-horz-holder');
 
@@ -1026,13 +1112,22 @@ export const elementTemplates = [
                         if (htmlArray.length > 1) 
                             galleryItemHtml.classList.add("multiple");
                         galleryScrollerHtml.appendChild(galleryItemHtml);
-
-                        el.style.border = ' rgb(197, 197, 197) 1.5px solid';
+                        el.style.borderColor = 'rgb(197, 197, 197)';
+                        el.style.borderWidth = '1.5px';
+                        el.style.borderStyle = 'solid';
                         el.style.borderRadius = "5px";
                         galleryItemHtml.appendChild(el);
                     });
 
-                    
+                    if (options && options.cardHtml) {
+                        const cardColor = getUpperColor(options.cardHtml);
+                        const colGalleryBG = new ColorHSL().fromHex(cardColor).modifyL(-6).modifyS(-18);
+                        const colGalleryItemBorder = colGalleryBG.modifyL(-25);
+                        galleryHtml.style.backgroundColor = colGalleryBG.getHex();
+                        galleryScrollerHtml.querySelectorAll('.display-block-img-container')?.forEach(el => {
+                            el.style.borderColor = colGalleryItemBorder.getHex();
+                        })
+                    }
 
                     let currentIndex = 0;
                     const galleryItemCount = htmlArray.length;
@@ -1135,7 +1230,7 @@ export const elementTemplates = [
                     //For GG-drive preview: https://drive.google.com/thumbnail?id=${fileId}&sz=w800
                     let imgVal = cardDataManage.getReturnValue('filebase|text', dat, "source", "value");
                     let fullScreenUrl = imgVal ?? undefined;
-                    if (imgVal.id && imgVal.url) {
+                    if (imgVal && imgVal.id && imgVal.url) {
                         fullScreenUrl = imgVal.url;
                         imgVal = `https://drive.google.com/thumbnail?id=${imgVal.id}`;
                     }
@@ -1553,7 +1648,7 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
+                value: (template, dat, options) => {
                     var contentHtml = cardDataManage.getReturnValue("html|text", dat, "content", "value");
                     if (typeof contentHtml === 'string') {
                         const newStringHtml = document.createElement('div');
@@ -1565,6 +1660,14 @@ export const elementTemplates = [
                         contentHtml.style.border = '#c3c3c3 1px solid !important';;
                         contentHtml.style.color = '#c3c3c3';
                     }
+
+                    if (options && options.cardHtml) {
+                        const cardColor = getUpperColor(options.cardHtml);
+                        const colAmb = new ColorHSL().fromHex(cardColor).modifyL(-20).modifyS(-10);
+                        contentHtml.style.color = colAmb.getHSLString();
+                        contentHtml.style.borderColor = colAmb.getHSLString();
+                    }
+
                     return contentHtml;
                 }
             },
@@ -1587,28 +1690,42 @@ export const elementTemplates = [
                         value: []
                     }
                 }
+            },
+            {
+                name: "CSS Style",
+                refName: "css_style",
+                type: "text",
+                isOmittable: true,
+                initialValue: () => {
+                    return {
+                        key: "text",
+                        value: "padding: 4px"
+                    }
+                }
             }
         ],
         return: {
             "html": {
-                value: (template, dat) => {
-                    let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "*", "value") ?? [];
+                value: (template, dat, options) => {
+                    let htmlArray = cardDataManage.getReturnValue("html|set-html", dat, "content", "value", options) ?? [];
                     if (!Array.isArray(htmlArray))
                         htmlArray = [htmlArray];
-                    //console.log("Panel", htmlArray);
                     const panelHtml = document.createElement('div');
                     panelHtml.classList.add("display-block-panel");
                     htmlArray?.forEach(el => {
                         if (!(el instanceof HTMLElement)) {
-                            //console.log("El: ", el, " ---> Resolving Blocks");
-                            el = cardDataManage.getReturnValue("html", el, null, "value")
+                            el = cardDataManage.getReturnValue("html", el, null, "value", options)
                         }
-
-                        //console.log("El: ", el);
                         if (el && el instanceof HTMLElement) {
                             panelHtml.appendChild(el);
                         }
                     });
+
+                    const panelStyle = cardDataManage.getReturnValue("text", dat, "css_style", "value");
+                    if (panelStyle) {
+                        panelHtml.setAttribute('style', (panelHtml.getAttribute('style') ?? "") + panelStyle);
+                    }
+
                     return panelHtml;
                 }
             },
@@ -1684,12 +1801,20 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
+                value: (template, dat, options) => {
                     const txtAbove = cardDataManage.getReturnValue("text", dat, "text_above", "value") ?? undefined;
                     const txtBelow = cardDataManage.getReturnValue("text", dat, "text_below", "value") ?? undefined;
                     const lineStyle = cardDataManage.getReturnValue("text", dat, "line_style", "value") ?? undefined;
                     const lineWidth = cardDataManage.getReturnValue("text", dat, "line_width", "value") ?? undefined;
                     const lineColor = cardDataManage.getReturnValue("text", dat, "line_color", "value") ?? undefined;
+
+                    let colDividerBase = undefined;
+                    if (options && options.cardHtml) {
+                        const cardColor = getUpperColor(options.cardHtml);
+                        colDividerBase = new ColorHSL().fromHex(cardColor).modifyL(-15).modifyS(-20);
+                       // colDividerBase.a = 0.8;
+                    }
+                    const colDividerTxt = colDividerBase ? colDividerBase.modifyL(-10) : undefined;
 
                     const horzDividerHtml = document.createElement('div');
                     horzDividerHtml.classList.add('display-block-divider-horz-area');
@@ -1698,6 +1823,10 @@ export const elementTemplates = [
                         txtAboveHtml.classList.add('display-block-divider-horz-txt');
                         txtAboveHtml.textContent = txtAbove;
                         horzDividerHtml.appendChild(txtAboveHtml);
+
+                        if (colDividerTxt) {
+                            txtAboveHtml.style.color = colDividerTxt.getHSLString();
+                        }
                     }
 
                     const horzLineHtml = document.createElement('div');
@@ -1708,18 +1837,25 @@ export const elementTemplates = [
                         lineStylings.push(`border-style: ${lineStyle}`);
                     if (lineWidth)
                         lineStylings.push(`border-width: ${lineWidth}`);
-                    if (lineColor)
+                    if (lineColor) {
                         lineStylings.push(`border-color: ${lineColor}`);
+                    }
+                    else if (colDividerBase) {
+                        lineStylings.push(`border-color: ${colDividerBase.getHSLString()}`);
+                    }
                     if (lineStylings.length > 0) {
                         horzLineHtml.setAttribute('style', lineStylings.join("; "));
                     }
-                    
 
                     if (txtBelow) {
                         const txtBelowHtml = document.createElement('div');
                         txtBelowHtml.classList.add('display-block-divider-horz-txt');
                         txtBelowHtml.textContent = txtBelow;
                         horzDividerHtml.appendChild(txtBelowHtml);
+
+                        if (colDividerTxt) {
+                            txtBelowHtml.style.color = colDividerTxt.getHSLString();
+                        }
                     }
 
                     return horzDividerHtml;
@@ -1772,11 +1908,11 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
-                    let contentArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value") ?? [];
+                value: (template, dat, options) => {
+                    let contentArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value", options) ?? [];
                     if (!Array.isArray(contentArray))
                         contentArray = [contentArray];
-                    contentArray = contentArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value") ?? undefined).filter(el => cardDataManage.isMatter(el));
+                    contentArray = contentArray.map(html => html instanceof HTMLElement ? html : cardDataManage.getReturnValue("html", html, null, "value", options) ?? undefined).filter(el => cardDataManage.isMatter(el));
 
                     if (contentArray) {
                         const txtIcon = cardDataManage.getReturnValue("text", dat, "icon", "value") ?? "extension";
@@ -1787,7 +1923,7 @@ export const elementTemplates = [
                         const clickEditFunc = ev => {
                             ev.stopPropagation();
                             ev.preventDefault();
-                            const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value");
+                            const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value", options);
                             const modal = getModalCardEditor(insideArray, {bypassValidation: true, isValueArray: true});
                             modal.style.border = "rgb(253, 1, 123) 2px dashed";
                             modal.querySelector('.txt-modal-title').textContent = "Edit Incomplete Area";
@@ -1843,7 +1979,7 @@ export const elementTemplates = [
                                 ev.stopPropagation();
                                 ev.preventDefault();
                                 const card = cardDataManage.getCardContainingData(dat);
-                                const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value") ?? [];
+                                const insideArray = cardDataManage.getReturnValue('set-html', dat, "inside_content", "value", options) ?? [];
                                 if (card) {
                                     let refDat = cardDataManage.getDataReference(card, dat, "$");
                                     if (refDat.parent.value && refDat.parent.value === dat) {
@@ -1891,6 +2027,13 @@ export const elementTemplates = [
                             
                             clickEditFunc(ev);
                         });
+
+                        if (options && options.cardHtml) {
+                            const cardColor = getUpperColor(options.cardHtml);
+                            const colTxtBG = new ColorHSL().fromHex(cardColor);
+                            topPanelHtml.style.backgroundColor = colTxtBG.getHSLString();
+                            bottomPanelHtml.style.backgroundColor = colTxtBG.getHSLString();
+                        }
 
                         return alertHtml;
                     }
@@ -2768,6 +2911,12 @@ const cardStyleList = [
         icon: "blur_on",
         valueType: "text",
         initialValue: () => "revealable"
+    },
+    {
+        styleName: "base-color",
+        icon: "colors",
+        valueType: "colorbase|text",
+        initialValue: () => "#ffffff"
     }
 ];
 

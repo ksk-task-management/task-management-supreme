@@ -1,7 +1,11 @@
+import * as helpers from "../utils/helpers";
+
 //Card scores
 export const scorePerDaysToEnd = 200;
-export const scorePerDaysPassedStart = 95;
-export const scorePerDaysPassedEnd = 120;
+export const scorePerDaysPassedStart = 135;
+export const scorePerDaysPassedEnd = 250;
+
+export const scorePercentPerIncompleteArea = 15;
 
 
 //Datetime
@@ -37,3 +41,41 @@ export const timeConvertionUnits = [
     value: 1000 * 60 * 60
   }
 ];
+
+export const dayOfWeekList = [
+  {
+    name: "Monday",
+    abbreviation: "Mon",
+    colorHex: "#e8d968ff"
+  },
+  {
+    name: "Tuesday",
+    abbreviation: "Tue",
+    colorHex: "#eb63e4"
+  },
+  {
+    name: "Wednesday",
+    abbreviation: "Wed",
+    colorHex: "#63eba0"
+  },
+  {
+    name: "Thursday",
+    abbreviation: "Thu",
+    colorHex: "#eba263"
+  },
+  {
+    name: "Friday",
+    abbreviation: "Fri",
+    colorHex: "#6397eb"
+  },
+  {
+    name: "Saturday",
+    abbreviation: "Sat",
+    colorHex: "#9563eb"
+  },
+  {
+    name: "Sunday",
+    abbreviation: "Sun",
+    colorHex: "#eb637e"
+  }
+]

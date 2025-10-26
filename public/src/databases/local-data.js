@@ -3,6 +3,7 @@ import { userData } from "../main";
 import { forceRenderOpeningPage, toggleNotification } from "../views/pages";
 import { postCloudData } from "./google-sheets";
 import * as cardDataManage from "../configs/card-data-manage";
+import { hyperflatArray } from "../utils/helpers";
 
 export var localProjectData = null;
 export var localCardData = null;
@@ -53,7 +54,9 @@ export function saveCloudCard(cardDataArray) {
         cardDataArray = cardDataManage.getCardContainingData(cardDataArray);
         cardID = cardDataManage.getDataUID(cardDataArray);
     }
-    console.log(cardDataManage);
+    /*cardDataArray = localCardData.find(card => cardDataManage.getDataUID(card) === cardID);
+    if (!cardDataArray)
+        return;*/
 
     appendEvent(`Saving the card ${cardID}`, async () => {
         const result = await postCloudData('saveCard', {

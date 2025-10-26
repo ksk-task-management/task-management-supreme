@@ -5,7 +5,10 @@ import * as constants from "../../configs/constants";
 import * as pages from "../pages";
 import * as viewCardEditor from "../editors/view-card-editor";
 import { defaultCardStatus, elementTemplates } from "../../configs/cards";
-import { hyperflatArray } from "../../utils/helpers";
+import { ColorHSL, getUpperColor, hyperflatArray } from "../../utils/helpers";
+import { postCloudData } from "../../databases/google-sheets";
+import { appendEvent } from "../../events/events";
+import { userData } from "../../main";
 
 export const masonryContainer = document.getElementById('masonrylist-container');
 const gapSize = 5;
@@ -81,16 +84,58 @@ function renderCards(options = null) {
     const totalCards = [];
     let cMin = undefined, cMax = undefined;
     //const totalStratifiedCard = [];
-    availableCards.forEach(cardDataArray => {
-        if (!cardDisplay.isCardDisplayInEnv(cardDataArray, options))
+    availableCards.forEach(orgCardDataArray => {
+        const displayCardDataArray = [...orgCardDataArray];
+        if (!cardDisplay.isCardDisplayInEnv(displayCardDataArray, options))
             return;
 
-        //
+        const pendingParentBlocks = [];
+        const findParentIdxFunc = (leadUID, level, cda) => {
+            if (!cda || !Array.isArray(cda))
+                return;
+            for (let p = 0; p < cda.length; p++) {
+                if (cda[p].key && cda[p].key === 'parent') {
+                    const newParent = {};
+                    if (leadUID !== undefined)
+                        newParent.leadUID = leadUID;
+                    newParent.bParent = cda[p];
+                    newParent.level = level ?? 0;
+                    pendingParentBlocks.push(newParent);
+                }
+            }
+        }
+        findParentIdxFunc(undefined, 0, displayCardDataArray);
+        
+        const allCardParents = [];
+        while (pendingParentBlocks.length > 0) {
+            const curParentBlock = pendingParentBlocks.shift();
+            const parentUID = cardDataManage.getReturnValue('text', curParentBlock.bParent, 'parent', 'value') ?? undefined;
+            const parentCard = localData.localCardData.find(lc => cardDataManage.getDataUID(lc) === parentUID);
+            if (parentCard) {
+                if (!allCardParents.some(ap => ap.uid === parentUID)) {
+                    allCardParents.push({level: curParentBlock.level, parentCard: parentCard});
+                }
+
+                const parentSubcards = hyperflatArray(cardDataManage.getBlocks(parentCard, 'subcards')?.map(cs => cardDataManage.getReturnValue('set', cs, 'inheritance', 'value')) ?? [], {excludedNulls: true})?.map(val => {
+                    if (val.value && cardDataManage.isBlock(val.value)) 
+                        return val.value;
+                    return undefined;
+                })?.filter(s => cardDataManage.isMatter(s) && cardDataManage.isBlock(s));
+
+                const appendTargetUID = curParentBlock.leadUID ? curParentBlock.leadUID : curParentBlock.bParent.uid ?? undefined;
+                const appendTargetIdx = appendTargetUID ? displayCardDataArray.findIndex(cda => cda.uid === appendTargetUID) : undefined;
+                if (appendTargetIdx !== undefined && appendTargetIdx >= 0) {
+                    displayCardDataArray.splice(appendTargetIdx + 1, 0, ...parentSubcards);
+                }
+
+                findParentIdxFunc(appendTargetUID, curParentBlock.level + 1, parentCard);
+            }
+        }
 
         var score = undefined;
         //Status
         let ctStatus = undefined;
-        const cStatusArray = hyperflatArray(cardDataManage.getBlocks(cardDataArray, "status")?.map(cs => cardDataManage.getReturnValue('text', cs, "*", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => {
+        const cStatusArray = hyperflatArray(cardDataManage.getBlocks(displayCardDataArray, "status")?.map(cs => cardDataManage.getReturnValue('text', cs, "*", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => {
             return defaultCardStatus.find(st => st.status === status)
         })?.filter(status => cardDataManage.isMatter(status)).sort((a, b) => a.scoreAdjust - b.scoreAdjust);
         if (cStatusArray.length > 0) {
@@ -99,7 +144,7 @@ function renderCards(options = null) {
 
         //Score adjusted by Deadlines
         if (!ctStatus || (ctStatus.status !== 'Completed' && ctStatus !== 'Cancelled')) {
-            const cbDeadlines = cardDataManage.getBlocks(cardDataArray, "end-date");
+            const cbDeadlines = cardDataManage.getBlocks(displayCardDataArray, "end-date");
             const cDS = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_start", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
             const cDE = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_end", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
             if (cDE) {
@@ -122,35 +167,13 @@ function renderCards(options = null) {
                 cMax = score;
             }
         }
-        totalCards.push({card: cardDataArray, statusTemplate: ctStatus, score: score});
-
-        //Status finding
-        /*let cStatus = undefined;
-        const cStatusArray = hyperflatArray(cardDataManage.getBlocks(cardDataArray, "status")?.map(cs => cardDataManage.getReturnValue('text', cs, "*", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => {
-            return defaultCardStatus.find(st => st.status === status)
-        })?.filter(status => cardDataManage.isMatter(status)).sort((a, b) => a.scoreAdjust - b.scoreAdjust);
-        if (cStatusArray.length > 0) {
-            cStatus = cStatusArray[0];
-            if (cStatus.status === 'In Progress') {
-                cardHtml.classList.add('elevated');
-            }
-
-        }
-
-        //Append to the array
-        let stratum = undefined;
-        const existIdx = totalStratifiedCard.findIndex(tsc => tsc.status === cStatus?.status);
-        if (existIdx < 0) {
-            stratum = {status: cStatus?.status, baseScore: cStatus?.scoreAdjust ?? 110, cards: []};
-            totalStratifiedCard.push(stratum);
-        }
-        else stratum = totalStratifiedCard[existIdx];
-        stratum.cards.push({
-            cardDataArray: cardDataArray,
-            html: cardHtml,
-            //baseScore: score,
+        totalCards.push({
+            card: displayCardDataArray, 
+            orgCard: orgCardDataArray, 
+            parent: allCardParents,
+            statusTemplate: ctStatus, 
             score: score
-        });*/
+        });
     });
     let adjMin = Math.min(cMin ?? 0, 0);
     if (adjMin < 0)
@@ -164,18 +187,15 @@ function renderCards(options = null) {
         if (card.statusTemplate) {
             card.score *= card.statusTemplate.scoreAdjust / 100;
         }
-        /*const cStatusArray = hyperflatArray(cardDataManage.getBlocks(card.card, "status")?.map(cs => cardDataManage.getReturnValue('text', cs, "*", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => {
-            return defaultCardStatus.find(st => st.status === status)
-        })?.filter(status => cardDataManage.isMatter(status)).sort((a, b) => a.scoreAdjust - b.scoreAdjust);
-        if (cStatusArray.length > 0) {
-            let cStatus = cStatusArray[0];
-            if (cStatus.status === 'In Progress') {
-                card.html.classList.add('elevated');
+
+        //Adjustment - Incomplete Area
+        if (card.card) {
+            const incompleteArea = cardDataManage.getBlocks(card.card, 'incomplete-area');
+            if (incompleteArea && incompleteArea.length > 0) {
+                card.score *= 1 - Math.min(100, incompleteArea.length * constants.scorePercentPerIncompleteArea) / 100;
             }
-            card.score *= cStatus.scoreAdjust / 100;
-        }*/
+        }
     });
-    console.log(totalCards);
 
     totalCards.sort((a, b) => a.score - b.score).forEach(card => {
             //console.log(card.arrangement);
@@ -191,7 +211,7 @@ function renderCards(options = null) {
             if (!columnToPlace)
                 return;
 
-            card.html = cardDisplay.displayCard(card.card); 
+            card.html = cardDisplay.displayCard(card); 
             if (card.statusTemplate && card.statusTemplate.status === 'In Progress') {
                 card.html.classList.add('elevated');
             }
@@ -203,127 +223,22 @@ function renderCards(options = null) {
             cardScoreHtml.classList.add('masonry-card-score-display');
             cardScoreHtml.textContent = card.score ? Math.round(card.score) : '--';
             card.html.querySelector('.display-card-toolbar-top').appendChild(cardScoreHtml);
+
+            const upperColor = getUpperColor(card.html);
+            if (upperColor) {
+                const colScoreBG = new ColorHSL().fromHex(upperColor).modifyL(-10);
+                cardScoreHtml.style.backgroundColor = colScoreBG.getHSLString();
+
+                const colScoreBorder = colScoreBG.modifyL(-20).modifyS(-20);
+                cardScoreHtml.style.borderColor = colScoreBorder.getHSLString();
+
+                const colScoreTxtColor = colScoreBorder.modifyL(-10).modifyS(-10);
+                cardScoreHtml.style.color = colScoreTxtColor.getHSLString();
+            }
+
             //Card wonkiness
             card.html.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.7}deg)`; //-0.25 to 0.25 degree
         });
-
-
-
-
-    //Score adjustment by minimum/status
-    /*totalStratifiedCard.sort((a, b) => a.baseScore - b.baseScore).forEach(stratum => {
-        /*let stratumMaximum = undefined;
-        stratum.cards.forEach(stc => {
-            if (!stratumMaximum || (stc.score && stc.score > stratumMaximum)) {
-                stratumMaximum = stc.score;
-            }
-        });
-        stratum.cards.forEach(stc => {
-            if (stc.score) 
-                return;
-            stc.score = (stratumMaximum ?? 0) * 1.1;
-            console.log('[O3]', stratumMaximum, stc.score);
-        });*/
-
-        /*let stratumMinimum = undefined;
-        stratum.cards.forEach(stc => {
-            if (!stratumMinimum || (stc.score && stc.score < stratumMinimum)) {
-                stratumMinimum = stc.score;
-            }
-        });
-        let adjMinimum = Math.min(stratumMinimum ?? 0, 0);
-        if (adjMinimum < 0) adjMinimum *= -1;
-        console.log(stratum, stratum.status, stratumMinimum, adjMinimum);
-
-        const stratumStatusTemp = defaultCardStatus.find(dst => dst.status === stratum.status) ?? undefined;
-        stratum.cards.forEach(stc => {
-            if (stc.score) {
-                stc.score += adjMinimum;
-                if (stratumStatusTemp)
-                    stc.score *= stratumStatusTemp.scoreAdjust / 100;
-            }
-            console.log('[O1]', stc.score);
-        });
-
-        
-
-        //Card placement
-        stratum.cards.sort((a, b) => {
-            const aScore = a.score ?? 999999;
-            const bScore = b.score ?? 999999;
-            return aScore - bScore;
-        })
-    });*/
-
-    
-
-
-
-    /*const totalCards = [];
-    for (var i = 0; i < availableCards.length; i++) {
-        const curIndex = i;
-        const cardDataArray = availableCards[curIndex];
-
-        //Card displating logics
-        if (!cardDisplay.isCardDisplayInEnv(cardDataArray, options)) {
-            continue;
-        }
-
-        //Card
-        const cardHtml = cardDisplay.displayCard(cardDataArray);
-
-        const cardDatArray = cardDataArray;
-        var score = 1000; //TEMP
-        const statusBlocks = cardDataManage.getBlocks(cardDatArray, 'status');
-        if (statusBlocks && statusBlocks.length > 0) {
-            const statusAdjustment = cardDataManage.getReturnValue("cardstatus|text", statusBlocks[0],"status", "value");
-            if (statusAdjustment) {
-                const statusTemplate = defaultCardStatus.find(ds => ds.status === statusAdjustment);
-                if (statusTemplate) {
-                    score *= (statusTemplate.scoreAdjust ? statusTemplate.scoreAdjust : 100) / 100;
-                }
-                if (statusAdjustment === 'In Progress') {
-                    cardHtml.classList.add('elevated');
-                }
-            }
-        }
-
-        //Score Element on top of the "Task" card
-        const cardTopToolbar = document.createElement('div');
-        cardTopToolbar.classList.add('display-card-toolbar-top');
-        if (cardHtml.hasChildNodes()) {
-            cardHtml.insertBefore(cardTopToolbar, cardHtml.firstChild);
-        }
-        else {
-            cardHtml.appendChild(cardTopToolbar);
-        }
-
-        totalCards.push({
-            el: cardHtml,
-            arrangement: score
-        });
-    }
-
-
-
-
-    totalCards.sort((a, b) => a.arrangement - b.arrangement).forEach(card => {
-        //console.log(card.arrangement);
-        var columnToPlace = columns[0];
-        var minHeight = columnToPlace.offsetHeight;
-        for (var i = 1; i < columns.length; i++){
-            var height = columns[i].offsetHeight;
-            if (height < minHeight) {
-                columnToPlace = columns[i];
-                minHeight = height;
-            }
-        }
-        if (!columnToPlace)
-            return;
-        columnToPlace.appendChild(card.el);
-        //Card wonkiness
-        card.el.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.7}deg)`; //-0.25 to 0.25 degree
-    });*/
 }
 
 export function createColumn(width) {
