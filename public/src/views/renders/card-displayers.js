@@ -273,7 +273,7 @@ export function displayBoardCard(displayCardDataArray, originalCardDataArray, bo
                                 return {domain: splits[0].toLowerCase(), value: splits[1]}
                             });
     //Icons
-    const customIcon = customStylings.find(sc => sc.domain === 'icon');
+    const customIcon = customStylings.findLast(sc => sc.domain === 'icon');
     const icon = customIcon?.value ?? "content_paste";
 
     boardCardHtml.classList.add('masonrylist-board-card');
