@@ -39,6 +39,11 @@ export const timeConvertionUnits = [
     name: "Hour",
     abbreviation: "h",
     value: 1000 * 60 * 60
+  },
+  {
+    name: "Minute",
+    abbreviation: "min",
+    value: 1000 * 60
   }
 ];
 

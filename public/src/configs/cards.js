@@ -537,34 +537,6 @@ export const elementTemplates = [
         return: {
             "html": {
                 value: (template, dat, options) => {
-                    const dateStartString = cardDataManage.getReturnValue('datetime', dat, "date_start", "value") ?? undefined;
-                    const dateEndString = cardDataManage.getReturnValue('datetime', dat, "date_end", "value") ?? undefined;
-                    const dateStart = dateStartString ? new Date(dateStartString) : undefined;
-                    const dateEnd = dateEndString ? new Date(dateEndString) : undefined;
-
-                    const today = new Date();
-                    const totalTimeUnits = [];
-                    if (dateStart && dateEnd) {
-                        if (dateStart > today) {
-                            const tTS = extractMilliseconds(dateStart - today);
-                            totalTimeUnits.push(tTS);
-                        }
-
-                        if (dateEnd > dateStart) {
-                            const tSE = extractMilliseconds(dateEnd - (today > dateStart ? today : dateStart));
-                            tSE.forEach(tseu => {
-                                tseu.customClass = "tse";
-                            });
-                            totalTimeUnits.push(tSE);
-                        }
-                    }
-                    else if (dateEnd) {
-                        if (dateEnd > today) {
-                            const tTE = extractMilliseconds(dateEnd - today);
-                            totalTimeUnits.push(tTE);
-                        }
-                    }
-
                     let colBase = undefined;
                     let colBaseBorder = undefined;
                     if (options && options.cardHtml) {
@@ -574,139 +546,186 @@ export const elementTemplates = [
                     if (colBase) {
                         colBaseBorder = colBase.modifyL(-15).modifyS(-20);
                     }
-
                     const deadlineAreaHtml = document.createElement('div');
                     deadlineAreaHtml.classList.add('display-block-enddate-area');
                     if (colBase) {
                         deadlineAreaHtml.style.backgroundColor = colBase.getHSLString();
                         deadlineAreaHtml.style.borderColor = colBaseBorder.getHSLString();
                     }
-                    if (totalTimeUnits.length > 0) {
-                        //Slider
-                        const timeSliderHolderHtml = document.createElement('div');
-                        timeSliderHolderHtml.classList.add('display-block-enddate-slider');
-                        deadlineAreaHtml.appendChild(timeSliderHolderHtml);
 
-                        const timeRemainingHolderHtml = document.createElement('div');
-                        timeRemainingHolderHtml.classList.add('display-block-enddate-slider');
-                        deadlineAreaHtml.appendChild(timeRemainingHolderHtml);
+                    let lastReloadTime = undefined;
+                    const endDateRenderFunc = () => {
+                        deadlineAreaHtml.innerHTML = '';
+                        const dateStartString = cardDataManage.getReturnValue('datetime', dat, "date_start", "value") ?? undefined;
+                        const dateEndString = cardDataManage.getReturnValue('datetime', dat, "date_end", "value") ?? undefined;
+                        const dateStart = dateStartString ? new Date(dateStartString) : undefined;
+                        const dateEnd = dateEndString ? new Date(dateEndString) : undefined;
 
-                        totalTimeUnits.forEach(unitset => {
-                            unitset.forEach(unit => {
-                                const timeSliderUnitHtml = document.createElement('div');
-                                timeSliderUnitHtml.classList.add('display-block-enddate-slider-unit');
-                                timeSliderUnitHtml.style.flexGrow = unit.unit.value * Math.ceil(unit.value);
-                                timeSliderHolderHtml.appendChild(timeSliderUnitHtml);
-
-                                if (unit.customClass) {
-                                    timeSliderUnitHtml.classList.add(unit.customClass.toLowerCase());
-                                }
-
-                                const perUnitRatio = Math.min(1, unit.value);
-                                const timeSliderUnitPercentHtml = document.createElement('div');
-                                timeSliderUnitPercentHtml.classList.add('percent-fill');
-                                timeSliderUnitPercentHtml.style.width = `${perUnitRatio * 100}%`;
-                                timeSliderUnitHtml.appendChild(timeSliderUnitPercentHtml);
-
-                                if (colBase) {
-                                    const colUnitBG = colBase.modifyL(-10).modifyS(-5);
-                                    timeSliderUnitHtml.style.backgroundColor = colUnitBG.getHSLString();
-                                    timeSliderUnitHtml.style.borderColor = colUnitBG.modifyL(-20).modifyS(-20).getHSLString();
-                                    timeSliderUnitPercentHtml.style.backgroundColor = colBase.modifyL(5).getHSLString();                                    
-                                }
-                            });
-
-                            //Time Remains
-                            const conjoinedUnits = [];
-                            let totalUnitRatio = 0;
-                            unitset.forEach(unit => {
-                                totalUnitRatio += unit.value * unit.unit.value;
-                                if (conjoinedUnits.length > 0 && conjoinedUnits[conjoinedUnits.length - 1].unit.name === unit.unit.name) {
-                                    conjoinedUnits[conjoinedUnits.length - 1].value += unit.value;
-                                }
-                                else {
-                                    conjoinedUnits.push(unit);
-                                }
-                            });
-                            const timeRemainUnitHtml = document.createElement('div');
-                            timeRemainUnitHtml.classList.add('display-block-enddate-slider-unit', 'remain-time');
-                            timeRemainUnitHtml.style.flexGrow = totalUnitRatio;
-                            timeRemainingHolderHtml.appendChild(timeRemainUnitHtml);
-
-                            if (colBase) {
-                                const colUnitBG = colBase.modifyL(-20).modifyS(-25);
-                                timeRemainUnitHtml.style.backgroundColor = colUnitBG.getHSLString();
-                                timeRemainUnitHtml.style.borderColor = colUnitBG.modifyL(-10).modifyS(-10).getHSLString();
+                        const today = new Date();
+                        const totalTimeUnits = [];
+                        if (dateStart && dateEnd) {
+                            if (dateStart > today) {
+                                const tTS = extractMilliseconds(dateStart - today);
+                                totalTimeUnits.push(tTS);
                             }
 
-                            conjoinedUnits.forEach((unit, idx) => {
-                                const rUHtml = document.createElement('span');
-                                rUHtml.classList.add('display-block-enddate-rt-unit');
-                                const uVal = unit.value - Math.floor(unit.value) > 0 ? unit.value.toFixed(1) : unit.value;
-                                rUHtml.textContent = `${uVal}${unit.unit.abbreviation}`;
-                                timeRemainUnitHtml.appendChild(rUHtml);
-                                rUHtml.style.transform = `rotate(${(Math.random() * 2 - 1) * 1}deg)`;
+                            if (dateEnd > dateStart) {
+                                const tSE = extractMilliseconds(dateEnd - (today > dateStart ? today : dateStart));
+                                tSE.forEach(tseu => {
+                                    tseu.customClass = "tse";
+                                });
+                                totalTimeUnits.push(tSE);
+                            }
+                        }
+                        else if (dateEnd) {
+                            if (dateEnd > today) {
+                                const tTE = extractMilliseconds(dateEnd - today);
+                                totalTimeUnits.push(tTE);
+                            }
+                        }
+
+                        
+                        if (totalTimeUnits.length > 0) {
+                            //Slider
+                            const timeSliderHolderHtml = document.createElement('div');
+                            timeSliderHolderHtml.classList.add('display-block-enddate-slider');
+                            deadlineAreaHtml.appendChild(timeSliderHolderHtml);
+
+                            const timeRemainingHolderHtml = document.createElement('div');
+                            timeRemainingHolderHtml.classList.add('display-block-enddate-slider');
+                            deadlineAreaHtml.appendChild(timeRemainingHolderHtml);
+
+                            totalTimeUnits.forEach(unitset => {
+                                unitset.forEach(unit => {
+                                    const timeSliderUnitHtml = document.createElement('div');
+                                    timeSliderUnitHtml.classList.add('display-block-enddate-slider-unit');
+                                    timeSliderUnitHtml.style.flexGrow = unit.unit.value * Math.ceil(unit.value);
+                                    timeSliderHolderHtml.appendChild(timeSliderUnitHtml);
+
+                                    if (unit.customClass) {
+                                        timeSliderUnitHtml.classList.add(unit.customClass.toLowerCase());
+                                    }
+
+                                    const perUnitRatio = Math.min(1, unit.value);
+                                    const timeSliderUnitPercentHtml = document.createElement('div');
+                                    timeSliderUnitPercentHtml.classList.add('percent-fill');
+                                    timeSliderUnitPercentHtml.style.width = `${perUnitRatio * 100}%`;
+                                    timeSliderUnitHtml.appendChild(timeSliderUnitPercentHtml);
+
+                                    if (colBase) {
+                                        const colUnitBG = colBase.modifyL(-10).modifyS(-5);
+                                        timeSliderUnitHtml.style.backgroundColor = colUnitBG.getHSLString();
+                                        timeSliderUnitHtml.style.borderColor = colUnitBG.modifyL(-20).modifyS(-20).getHSLString();
+                                        timeSliderUnitPercentHtml.style.backgroundColor = colBase.modifyL(5).getHSLString();                                    
+                                    }
+                                });
+
+                                //Time Remains
+                                const conjoinedUnits = [];
+                                let totalUnitRatio = 0;
+                                unitset.forEach(unit => {
+                                    totalUnitRatio += unit.value * unit.unit.value;
+                                    if (conjoinedUnits.length > 0 && conjoinedUnits[conjoinedUnits.length - 1].unit.name === unit.unit.name) {
+                                        conjoinedUnits[conjoinedUnits.length - 1].value += unit.value;
+                                    }
+                                    else {
+                                        conjoinedUnits.push(unit);
+                                    }
+                                });
+                                const timeRemainUnitHtml = document.createElement('div');
+                                timeRemainUnitHtml.classList.add('display-block-enddate-slider-unit', 'remain-time');
+                                timeRemainUnitHtml.style.flexGrow = totalUnitRatio;
+                                timeRemainingHolderHtml.appendChild(timeRemainUnitHtml);
 
                                 if (colBase) {
-                                    let colRUBG = colBase.modifyL(-7).modifyS(-15);
-                                    rUHtml.style.borderColor = colRUBG.modifyL(-25).modifyS(-20).getHSLString();
-                                    if (idx === 0) {
-                                        colRUBG = colRUBG.modifyL(10);
+                                    const colUnitBG = colBase.modifyL(-20).modifyS(-25);
+                                    timeRemainUnitHtml.style.backgroundColor = colUnitBG.getHSLString();
+                                    timeRemainUnitHtml.style.borderColor = colUnitBG.modifyL(-10).modifyS(-10).getHSLString();
+                                }
+
+                                conjoinedUnits.forEach((unit, idx) => {
+                                    const rUHtml = document.createElement('span');
+                                    rUHtml.classList.add('display-block-enddate-rt-unit');
+                                    const uVal = unit.value - Math.floor(unit.value) > 0 ? (unit.value - Math.floor(unit.value) > 0 ? unit.value.toFixed(1) : unit.value) : unit.value;
+                                    rUHtml.textContent = `${uVal}${unit.unit.abbreviation}`;
+                                    timeRemainUnitHtml.appendChild(rUHtml);
+                                    rUHtml.style.transform = `rotate(${(Math.random() * 2 - 1) * 1}deg)`;
+
+                                    if (colBase) {
+                                        let colRUBG = colBase.modifyL(-7).modifyS(-15);
+                                        rUHtml.style.borderColor = colRUBG.modifyL(-25).modifyS(-20).getHSLString();
+                                        if (idx === 0) {
+                                            colRUBG = colRUBG.modifyL(10);
+                                        }
+                                        rUHtml.style.backgroundColor = colRUBG.getHSLString();
                                     }
-                                    rUHtml.style.backgroundColor = colRUBG.getHSLString();
-                                }
+                                });
                             });
-                        });
-                    }
+                        }
 
-                    //Actual deadline
-                    const totalDeadlines = [];
-                    if (dateStart && dateStart > today) totalDeadlines.push(dateStart);
-                    if (dateEnd) totalDeadlines.push(dateEnd);
-                    if (totalDeadlines.length > 0) {
-                        const deadlineHolderHtml = document.createElement('div');
-                        deadlineHolderHtml.classList.add('display-block-enddate-deadline-area');
-                        totalDeadlines.forEach(dl => {
-                            const deadlineGroupHtml = document.createElement('div');
-                            deadlineGroupHtml.classList.add('display-block-enddate-deadline-group');
-                            const totalDateItems = [];
-                            const dayOfWeek = dl.toLocaleDateString('en-US', { weekday: 'short' });
-                            const customColor = constants.dayOfWeekList.find(dow => dow.abbreviation === dayOfWeek)?.colorHex ?? undefined;
-                            totalDateItems.push({value: `${dayOfWeek} ${dl.getDate()}`, customColor: customColor});
-                            totalDateItems.push({value: `${["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dl.getMonth()]} ${dl.getFullYear()}`});
-                            totalDateItems.push({value: `${dl.getHours()}:${dl.getMinutes()}`});
-                            totalDateItems.forEach(tdi => {
-                                const tdiHtml = document.createElement('span');
-                                tdiHtml.classList.add('display-block-enddate-deadline-item');
-                                tdiHtml.textContent = tdi.value;
-                                deadlineGroupHtml.appendChild(tdiHtml);
+                        //Actual deadline
+                        const totalDeadlines = [];
+                        if (dateStart && dateStart > today) totalDeadlines.push(dateStart);
+                        if (dateEnd) totalDeadlines.push(dateEnd);
+                        if (totalDeadlines.length > 0) {
+                            const deadlineHolderHtml = document.createElement('div');
+                            deadlineHolderHtml.classList.add('display-block-enddate-deadline-area');
+                            totalDeadlines.forEach(dl => {
+                                const deadlineGroupHtml = document.createElement('div');
+                                deadlineGroupHtml.classList.add('display-block-enddate-deadline-group');
+                                const totalDateItems = [];
+                                const dayOfWeek = dl.toLocaleDateString('en-US', { weekday: 'short' });
+                                const customColor = constants.dayOfWeekList.find(dow => dow.abbreviation === dayOfWeek)?.colorHex ?? undefined;
+                                totalDateItems.push({value: `${dayOfWeek} ${dl.getDate()}`, customColor: customColor});
+                                totalDateItems.push({value: `${["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dl.getMonth()]} ${dl.getFullYear()}`});
+                                totalDateItems.push({value: `${dl.getHours()}:${dl.getMinutes()}`});
+                                totalDateItems.forEach(tdi => {
+                                    const tdiHtml = document.createElement('span');
+                                    tdiHtml.classList.add('display-block-enddate-deadline-item');
+                                    tdiHtml.textContent = tdi.value;
+                                    deadlineGroupHtml.appendChild(tdiHtml);
 
-                                if (tdi.customColor) {
-                                    const newColorHSL = new ColorHSL().fromHex(tdi.customColor);
-                                    tdiHtml.style.backgroundColor = newColorHSL.getHSLString();
+                                    if (tdi.customColor) {
+                                        const newColorHSL = new ColorHSL().fromHex(tdi.customColor);
+                                        tdiHtml.style.backgroundColor = newColorHSL.getHSLString();
 
-                                    const borderColorHSL = newColorHSL.modifyL(-20);
-                                    tdiHtml.style.borderColor = borderColorHSL.getHSLString();
+                                        const borderColorHSL = newColorHSL.modifyL(-20);
+                                        tdiHtml.style.borderColor = borderColorHSL.getHSLString();
 
-                                    tdiHtml.style.color = 'white';
-                                    tdiHtml.style.fontWeight = 'bold';
-                                    tdiHtml.style.textShadow = 'var(--shadow-min)'
-                                    tdiHtml.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.6}deg)`;
-                                }
-                                else if (colBase) {
-                                    const colTDIBG = colBase.modifyL(10);
-                                    tdiHtml.style.backgroundColor = colTDIBG.getHSLString();
-                                    tdiHtml.style.borderColor = colTDIBG.modifyL(-25).modifyS(-20).getHSLString();
-                                }
+                                        tdiHtml.style.color = 'white';
+                                        tdiHtml.style.fontWeight = 'bold';
+                                        tdiHtml.style.textShadow = 'var(--shadow-min)'
+                                        tdiHtml.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.6}deg)`;
+                                    }
+                                    else if (colBase) {
+                                        const colTDIBG = colBase.modifyL(10);
+                                        tdiHtml.style.backgroundColor = colTDIBG.getHSLString();
+                                        tdiHtml.style.borderColor = colTDIBG.modifyL(-25).modifyS(-20).getHSLString();
+                                    }
+                                });
+                                deadlineHolderHtml.appendChild(deadlineGroupHtml);
                             });
-                            deadlineHolderHtml.appendChild(deadlineGroupHtml);
-                        });
-                        deadlineAreaHtml.appendChild(deadlineHolderHtml);
-                    }
-                    else {
+                            deadlineAreaHtml.appendChild(deadlineHolderHtml);
+                        }
+                        else {
 
+                        }
+                        lastReloadTime = new Date();
                     }
+                    endDateRenderFunc();
+
+                    //Hot reload
+                    const reloadTimeThreshold = 1000 * 60 * 5;
+                    deadlineAreaHtml.addEventListener('mouseenter', ev => {
+                        const currentTime = new Date();
+                        if (lastReloadTime !== undefined && currentTime - lastReloadTime < reloadTimeThreshold) {
+                            return;
+                        }
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        endDateRenderFunc();
+                    });
 
                     return deadlineAreaHtml;
                 }
@@ -933,6 +952,10 @@ export const elementTemplates = [
 
                     if (itemHtmlArray.length > 0){
                         itemHtmlArray.forEach((ve, idx) => {
+                            if (ve.classList.contains('item-bare')) {
+                                return;
+                            }
+
                             const numBadge = document.createElement('span');
                             numBadge.classList.add('display-block-numberedlist-numbadge', );
                             numBadge.textContent = (idx + 1).toString();
@@ -1003,6 +1026,23 @@ export const elementTemplates = [
                         arrayIdx =  itemArray.findIndex(ia => Array.isArray(ia) || (ia.value && Array.isArray(ia.value)) || !cardDataManage.isMatter(ia));
                     }
 
+                    const itemToggleFunc = (item) => {
+                        if (!item) return;
+                        const value = !(item.isComplete === true);
+                        if (value) {
+                            item.isComplete = true;
+                        }
+                        else if (item.isComplete) {
+                            item.isComplete = false;
+                        }
+                        const card = cardDataManage.getCardContainingData(dat);
+                        if (card) {
+                            localData.appendLocalCard(card);
+                            localData.saveCloudCard(card);
+                            forceRenderOpeningPage();
+                        }
+                    }
+
                     const containerHtml = document.createElement('div');
                     containerHtml.classList.add('display-container');
                     containerHtml.style.width = '100%';
@@ -1010,8 +1050,23 @@ export const elementTemplates = [
                     itemArray.forEach(item => {
                         if (!item.key || !item.value || cardDataManage.isBlock(item))
                             return;
-                        if (displayOnlyUnfinished && item.isComplete === true)
+                        if (displayOnlyUnfinished && item.isComplete === true) {
+                            const checklistCompleteMarkerHtml = document.createElement('div');
+                            checklistCompleteMarkerHtml.classList.add('icon', 'material-symbols-outlined', 'display-block-checklist-completeplaceholder', 'item-bare');
+                            checklistCompleteMarkerHtml.textContent = 'close';
+                            checklistCompleteMarkerHtml.addEventListener('click', ev => {
+                                ev.stopPropagation();
+                                ev.preventDefault();
+                                itemToggleFunc(item);
+                            });
+                            containerHtml.appendChild(checklistCompleteMarkerHtml);
+                            if (options && options.cardHtml) {
+                                const cardColor = getUpperColor(options.cardHtml);
+                                const colItemCompleteMarker = new ColorHSL().fromHex(cardColor).modifyL(-15).modifyS(-15);
+                                checklistCompleteMarkerHtml.style.color = colItemCompleteMarker.getHex();
+                            }
                             return;
+                        }
                         let itemDisplayHtml = cardDataManage.getReturnValue('html|text', item, null, "value", options) ?? undefined;
                         if (itemDisplayHtml && typeof itemDisplayHtml === 'string') {
                             const stringHtml = document.createElement('span');
@@ -1039,19 +1094,7 @@ export const elementTemplates = [
                         checkListToggleHtml.addEventListener('click', ev => {
                             ev.stopPropagation();
                             ev.preventDefault();
-                            const value = !(item.isComplete === true);
-                            if (value) {
-                                item.isComplete = true;
-                            }
-                            else if (item.isComplete) {
-                                item.isComplete = false;
-                            }
-                            const card = cardDataManage.getCardContainingData(dat);
-                            if (card) {
-                                localData.appendLocalCard(card);
-                                localData.saveCloudCard(card);
-                                forceRenderOpeningPage();
-                            }
+                            itemToggleFunc(item);
                         });
                         itemHtml.appendChild(itemDisplayHtml);
                         if (options && options.cardHtml) {
