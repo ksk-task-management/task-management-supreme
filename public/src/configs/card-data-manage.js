@@ -194,10 +194,20 @@ export function getDataTitle(cardDataArray) {
  * @param {object} [options=null] {notFindUnderCompleteSections: boolean, notFindUnderKeys: [block-keys]}
  */
 export function getBlocks(cardDataArray, keys, options = null) {
+    const isNotFindUnderCompleteSections = options?.notFindUnderCompleteSections ?? undefined;
     const isNotFindUnderKeys = options?.notFindUnderKeys ?? undefined;
 
     var result = null;
     const pracKeys = Array.isArray(keys) ? keys : [keys];
+    pracKeys.forEach(key => {
+        const keyTemplate = elementTemplates.find(el => el.key.includes(key));
+        if (keyTemplate) {
+            keyTemplate.key.forEach(ktk => {
+                if (!pracKeys.includes(ktk)) 
+                    pracKeys.push(ktk);
+            });
+        }
+    });
     const isByPassKeys = pracKeys.some(key => key.trim() === "*");
     const isObject = element => {
         return Object.prototype.toString.call(element) === '[object Object]' || (Array.isArray(element) && typeof element !== 'string');
@@ -206,10 +216,14 @@ export function getBlocks(cardDataArray, keys, options = null) {
     cardDataArray.forEach(block => remainingData.push(block));
     while (remainingData.length > 0) {
         const firstData = remainingData.shift();
+        if (isNotFindUnderCompleteSections && firstData.isComplete === true)
+            continue;
+
         if (isObject(firstData) && firstData.key && (isByPassKeys || pracKeys.includes(firstData.key))) {
             const template = elementTemplates.find(et => et.key.includes(firstData.key));
             if (template && template.return && template.return.block) {
                 if (!result) result = [];
+                if (!result.some(rb => rb.uid === firstData.uid))
                     result.push(firstData);
             }
         }
@@ -228,8 +242,9 @@ export function getBlocks(cardDataArray, keys, options = null) {
 
             Object.keys(firstData).forEach(key => {
                 const child = firstData[key];
-                if (isObject(child))
+                if (isObject(child)) {
                     remainingData.unshift(child);
+                }
             });
         }
     }

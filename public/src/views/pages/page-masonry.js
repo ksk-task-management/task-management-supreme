@@ -144,7 +144,7 @@ function renderCards(options = null) {
 
         //Score adjusted by Deadlines
         if (!ctStatus || (ctStatus.status !== 'Completed' && ctStatus !== 'Cancelled')) {
-            const cbDeadlines = cardDataManage.getBlocks(displayCardDataArray, "end-date");
+            const cbDeadlines = cardDataManage.getBlocks(displayCardDataArray, "end-date", {notFindUnderCompleteSections: true});
             const cDS = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_start", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
             const cDE = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_end", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
             if (cDE) {

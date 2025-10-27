@@ -1061,7 +1061,9 @@ export const elementTemplates = [
                             const colItemBorder = colItemBG.modifyL(-20).modifyS(-20);
                             itemHtml.style.borderColor = colItemBorder.getHex();
 
-                            checkListToggleHtml.style.backgroundColor = colItemBorder.getHex();
+                            if (!item.isComplete) {
+                                checkListToggleHtml.style.backgroundColor = colItemBorder.getHex();
+                            }
                         }
 
                         containerHtml.appendChild(itemHtml);
@@ -1347,7 +1349,7 @@ export const elementTemplates = [
         ],
         return: {
             "html": {
-                value: (template, dat) => {
+                value: (template, dat, options) => {
                     let fileValues = cardDataManage.getReturnValue("filebase|set-filebase", dat, "*", "value") ?? [];
                     fileValues = Array.isArray(fileValues) ? fileValues?.map(d => d.value ?? undefined).filter(d => cardDataManage.isMatter(d)) : [fileValues];
                     console.log(fileValues);
@@ -1362,6 +1364,11 @@ export const elementTemplates = [
                                 }
                             }
                         });
+                        if (options && options.cardHtml) {
+                            const cardColor = getUpperColor(options.cardHtml);
+                            const colRackBG = new ColorHSL().fromHex(cardColor).modifyL(-10).modifyS(-15);
+                            fileRackHtml.style.backgroundColor = colRackBG.getHSLString();
+                        }
                         return fileRackHtml;
                     }
                 }
