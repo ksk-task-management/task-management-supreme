@@ -2,7 +2,7 @@ import * as cardDataManage from "../../configs/card-data-manage";
 import { defaultCardStatus } from "../../configs/cards";
 import * as pages from "../pages";
 import * as localData from "../../databases/local-data";
-import * as viewCardEditor from "../editors/view-card-editor"
+import * as cardViewer from "../pages/page-card-viewer"
 import { ColorHSL, getUpperColor, hyperflatArray, setColorOpacity } from "../../utils/helpers";
 
 export function displayCard(cardData) {
@@ -43,6 +43,14 @@ export function displayCard(cardData) {
     else {
         //General type
         displayGeneralCard(displayCardDataArray, originalCardDataArray, cardHtml);
+
+        //Default behaviour -> Click to open the card editor
+        cardHtml.addEventListener('click', ev => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            cardViewer.openCardViewer(cardData);
+            //viewCardEditor.getModalCardEditor(originalCardDataArray);
+        });
     }
 
     const cardTopToolbarHtml = document.createElement('div');
@@ -238,12 +246,6 @@ export function displayGeneralCard(displayCardDataArray, originalCardDataArray, 
     });
 
     //Bottom Toolbar
-
-
-    //Default behaviour -> Click to open the card editor
-    cardHtml.addEventListener('click', () => {
-        viewCardEditor.getModalCardEditor(originalCardDataArray);
-    });
 }
 
 export function displayBoardCard(displayCardDataArray, originalCardDataArray, boardCardHtml) {
@@ -347,6 +349,11 @@ export function displayBoardCard(displayCardDataArray, originalCardDataArray, bo
             env: boardUID
         });
     });
+}
+
+export function displayEventCard(displayCardDataArray, originalCardDataArray, cardHtml) {
+    
+    return cardHtml;
 }
 
 export function isCardDisplayInEnv(cardDataArray, options = null) {

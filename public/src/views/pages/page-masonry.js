@@ -10,12 +10,15 @@ import { postCloudData } from "../../databases/google-sheets";
 import { appendEvent } from "../../events/events";
 import { userData } from "../../main";
 
+export const masonryEventHandler = document.getElementById('masonrylist-event-scroller');
 export const masonryContainer = document.getElementById('masonrylist-container');
 const gapSize = 5;
 let timeToRerenderFunction = null;
 export function render(pageObject, options = null) {
     if (!masonryContainer)
         return;
+    masonryEventHandler.classList.remove('hidden');
+    masonryEventHandler.innerHTML = '';
     masonryContainer.innerHTML = '';
     const columnCount = getColumnCount();
     const columnWidth = (masonryContainer.getBoundingClientRect().width  - (columnCount + 1) * gapSize) / columnCount;
@@ -69,6 +72,9 @@ export function render(pageObject, options = null) {
             pageObject.scrollPos = pageMasonry.scrollTop;
         }
     }
+
+    if (masonryEventHandler.children.length <= 0) 
+        masonryEventHandler.classList.add('hidden');
 }
 
 function renderCards(options = null) {
@@ -132,6 +138,8 @@ function renderCards(options = null) {
             }
         }
 
+        const cType = hyperflatArray(cardDataManage.getBlocks(displayCardDataArray, "type")?.map(cs => cardDataManage.getReturnValue('cardtype', cs, "type", "value") ?? null), {excludedNulls: true, renderValues: true})[0] ?? "Task";
+
         var score = undefined;
         //Status
         let ctStatus = undefined;
@@ -169,6 +177,7 @@ function renderCards(options = null) {
         }
         totalCards.push({
             card: displayCardDataArray, 
+            type: cType,
             orgCard: orgCardDataArray, 
             parent: allCardParents,
             statusTemplate: ctStatus, 
@@ -198,47 +207,56 @@ function renderCards(options = null) {
     });
 
     totalCards.sort((a, b) => a.score - b.score).forEach(card => {
-            //console.log(card.arrangement);
-            var columnToPlace = columns[0];
-            var minHeight = columnToPlace.offsetHeight;
-            for (var i = 1; i < columns.length; i++){
-                var height = columns[i].offsetHeight;
-                if (height < minHeight) {
-                    columnToPlace = columns[i];
-                    minHeight = height;
-                }
+        card.html = cardDisplay.displayCard(card); 
+        //Top panel renderings
+         //Card score            
+        const cardScoreHtml = document.createElement('div');
+        cardScoreHtml.classList.add('masonry-card-score-display');
+        cardScoreHtml.textContent = card.score ? Math.round(card.score) : '--';
+        card.html.querySelector('.display-card-toolbar-top').appendChild(cardScoreHtml);
+
+        const upperColor = getUpperColor(card.html);
+        if (upperColor) {
+            const colScoreBG = new ColorHSL().fromHex(upperColor).modifyL(-10);
+            cardScoreHtml.style.backgroundColor = colScoreBG.getHSLString();
+
+            const colScoreBorder = colScoreBG.modifyL(-20).modifyS(-20);
+            cardScoreHtml.style.borderColor = colScoreBorder.getHSLString();
+
+            const colScoreTxtColor = colScoreBorder.modifyL(-10).modifyS(-10);
+            cardScoreHtml.style.color = colScoreTxtColor.getHSLString();
+        }
+
+
+        if (card.type === 'Event') {
+            const eventCardHandlerHtml = document.createElement('div');
+            eventCardHandlerHtml.classList.add('masonry-event-card-handler');
+            eventCardHandlerHtml.style.maxWidth = `${masonryContainer.firstChild.offsetWidth}px`;
+            masonryEventHandler?.appendChild(eventCardHandlerHtml);
+            eventCardHandlerHtml.appendChild(card.html);
+            return;
+        }
+
+        //console.log(card.arrangement);
+        var columnToPlace = columns[0];
+        var minHeight = columnToPlace.offsetHeight;
+        for (var i = 1; i < columns.length; i++){
+            var height = columns[i].offsetHeight;
+            if (height < minHeight) {
+                columnToPlace = columns[i];
+                minHeight = height;
             }
-            if (!columnToPlace)
-                return;
-
-            card.html = cardDisplay.displayCard(card); 
-            if (card.statusTemplate && card.statusTemplate.status === 'In Progress') {
-                card.html.classList.add('elevated');
-            }
-
-            columnToPlace.appendChild(card.html);
-            //Card score            
-            //Top toolbar - Score
-            const cardScoreHtml = document.createElement('div');
-            cardScoreHtml.classList.add('masonry-card-score-display');
-            cardScoreHtml.textContent = card.score ? Math.round(card.score) : '--';
-            card.html.querySelector('.display-card-toolbar-top').appendChild(cardScoreHtml);
-
-            const upperColor = getUpperColor(card.html);
-            if (upperColor) {
-                const colScoreBG = new ColorHSL().fromHex(upperColor).modifyL(-10);
-                cardScoreHtml.style.backgroundColor = colScoreBG.getHSLString();
-
-                const colScoreBorder = colScoreBG.modifyL(-20).modifyS(-20);
-                cardScoreHtml.style.borderColor = colScoreBorder.getHSLString();
-
-                const colScoreTxtColor = colScoreBorder.modifyL(-10).modifyS(-10);
-                cardScoreHtml.style.color = colScoreTxtColor.getHSLString();
-            }
-
-            //Card wonkiness
-            card.html.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.7}deg)`; //-0.25 to 0.25 degree
-        });
+        }
+        if (!columnToPlace)
+            return;
+           
+        if (card.statusTemplate && card.statusTemplate.status === 'In Progress') {
+            card.html.classList.add('elevated');
+        }
+        columnToPlace.appendChild(card.html);
+        //Card wonkiness
+        card.html.style.transform = `rotate(${(Math.random() * 2 - 1) * 0.7}deg)`; //-0.25 to 0.25 degree
+    });
 }
 
 export function createColumn(width) {

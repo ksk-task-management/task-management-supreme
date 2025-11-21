@@ -6,6 +6,7 @@ import { getModalSheetSetting } from "./views/modals";
 import { displayPage, toggleNotification } from "./views/pages";
 import { makeAction_ButtonSwitch } from "./views/view-actions";
 import * as pgMasonry from "./views/pages/page-masonry";
+import * as pgCardViewer from "./views/pages/page-card-viewer";
 import * as settings from "./views/editors/view-card-settings";
 import * as contextMenu from "./views/context-menu";
 import { delay } from "./utils/helpers";
@@ -58,6 +59,8 @@ function checkDataDuplication() {
 
 
 function onAppLoad(){
+    pgCardViewer.setupCardViewerPage();
+
     //>ความพยายามในการจัดการกับปัญหา context-menu เด้งใน IOS แต่เหมือนจะได้ผล Response แค่ใน Android
     /*if ('virtualKeyboard' in navigator) {
         navigator.virtualKeyboard?.addEventListener('geometrychange', (event) => {
