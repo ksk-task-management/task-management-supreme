@@ -1,49 +1,84 @@
 import * as cardDisplayer from "../renders/card-displayers";
 import * as viewCardEditor from "../editors/view-card-editor";
+import * as pages from "../pages";
 import * as cardDataManage from "../../configs/card-data-manage";
+import * as localData from "../../databases/local-data";
 
-const cardViewerPage = document.getElementById('page-card-viewer');
+export const cardViewerPage = document.getElementById('page-card-viewer');
 const cardHandler = document.getElementById('card-viewer-handler');
 // Maximum degree of rotation (sensitivity)
 const MAX_ROTATION = 15; // degrees
 
-let openingCardData = undefined;
+let openingUID = undefined;
+let savedCardJSON = undefined;
+let isEdited = false;
 export function setupCardViewerPage() {
     document.getElementById('btn-cardviewer-back')?.addEventListener('click', ev => {
         ev.preventDefault();
         ev.stopPropagation();
-        if (cardViewerPage) {
-            openingCardData = undefined;
-            cardViewerPage.classList.add('hidden');
+        pages.gotoPreviousPage(isEdited);
+        openingUID = undefined;
+        savedCardJSON = undefined;
+        isEdited = false;
+    });
+
+    document.getElementById('btn-cardviewer-delete')?.addEventListener('click', ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (openingUID) {
+            const matchCard = localData.localCardData.find(card => cardDataManage.getDataUID(card) === openingUID);
+            if (matchCard)
+                cardDataManage.deleteCard(matchCard);
         }
+        pages.gotoPreviousPage();
+        openingUID = undefined;
+        savedCardJSON = undefined;
+        isEdited = false;
     });
 
     document.getElementById('btn-cardviewer-edit')?.addEventListener('click', ev => {
         ev.stopPropagation();
         ev.preventDefault();
-        if (openingCardData) {
-            viewCardEditor.getModalCardEditor(openingCardData);
+        if (openingUID !== undefined) {
+            const matchCard = localData.localCardData.find(card => cardDataManage.getDataUID(card) === openingUID);
+            if (matchCard)
+                viewCardEditor.getModalCardEditor(matchCard);
         }
     });
 
     handleCardRotation();
 }
 
-export function openCardViewer(card) {
-    if (openingCardData !== undefined && cardDataManage.getDataUID(card.orgCard) === cardDataManage.getDataUID(openingCardData)) {
+export function render(pageObject, options = null) {
+    if (!options || !options.card)
+        return;
+
+    if (!cardHandler || !cardViewerPage)
+        return;
+    //cardViewerPage.classList.remove('hidden');
+
+    //console.log(originalCardDataArray);
+    //openingCardData = options.card.orgCard;
+    openingUID = cardDataManage.getDataUID(options.card.orgCard) ?? undefined;
+    if (!openingUID)
+        return;
+    const matchCard = localData.localCardData.find(card => cardDataManage.getDataUID(card) === openingUID);
+    if (!matchCard) {
+        pages.gotoPreviousPage();
         return;
     }
 
-    if (!cardHandler || !cardViewerPage || !card)
-        return;
-    cardViewerPage.classList.remove('hidden');
+    const newCardJSON = JSON.stringify(matchCard);
+    if (savedCardJSON !== undefined && newCardJSON !== savedCardJSON) {
+        isEdited = true;
+    }
+    savedCardJSON = newCardJSON;
 
-    //console.log(originalCardDataArray);
-    openingCardData = card.orgCard;
-    const cardHtml = cardDisplayer.displayCard(card);
+    const cardHtml = cardDisplayer.displayCard(cardDisplayer.getComputedCard(matchCard));
     cardHandler.innerHTML = '';
     cardHandler.appendChild(cardHtml);
 }
+
 function handleCardRotation() {
     cardHandler.addEventListener('mousemove', ev => {
     const rect = cardHandler.getBoundingClientRect();

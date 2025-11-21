@@ -1,6 +1,7 @@
 import { generateShortId, hyperflatArray } from "../utils/helpers";
 import { elementTemplates, majorCardTypes } from "./cards";
 import * as localData from "../databases/local-data";
+import * as pages from "../views/pages";
 
 export function makeBlock(domain, values, editDate = null) {
     const blockTemplate = elementTemplates.find(bt => bt.key.includes(domain));
@@ -92,6 +93,12 @@ export function deleteData(parent, objectDat, options = null) {
         }
     }
     console.log("Deleted from: ", parent);
+}
+
+export function deleteCard(cardDataArray) {
+    localData.deleteLocalCard(cardDataArray);
+    localData.deleteCloudCard(cardDataArray);
+    pages.forceRenderOpeningPage();
 }
 
 export function validateData(dataArray, env = null) {

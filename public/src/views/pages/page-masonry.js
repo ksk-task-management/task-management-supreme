@@ -85,104 +85,23 @@ function renderCards(options = null) {
 
     //Stratify the cards
     //[{status, cards: [html, cardDataArray, score]}]
-    const today = new Date();
-    const baseTimeUnit = constants.timeConvertionUnits.find(tc => tc.name === "Day")?.value ?? 1000 * 60 * 60 * 24;
+    
     const totalCards = [];
     let cMin = undefined, cMax = undefined;
     //const totalStratifiedCard = [];
     availableCards.forEach(orgCardDataArray => {
-        const displayCardDataArray = [...orgCardDataArray];
-        if (!cardDisplay.isCardDisplayInEnv(displayCardDataArray, options))
+        if (!cardDisplay.isCardDisplayInEnv(orgCardDataArray, options))
             return;
 
-        const pendingParentBlocks = [];
-        const findParentIdxFunc = (leadUID, level, cda) => {
-            if (!cda || !Array.isArray(cda))
-                return;
-            for (let p = 0; p < cda.length; p++) {
-                if (cda[p].key && cda[p].key === 'parent') {
-                    const newParent = {};
-                    if (leadUID !== undefined)
-                        newParent.leadUID = leadUID;
-                    newParent.bParent = cda[p];
-                    newParent.level = level ?? 0;
-                    pendingParentBlocks.push(newParent);
-                }
-            }
+        const computedCard = cardDisplay.getComputedCard(orgCardDataArray);
+        if (!cMin || (computedCard.score && computedCard.score < cMin)) {
+            cMin = computedCard.score;
         }
-        findParentIdxFunc(undefined, 0, displayCardDataArray);
-        
-        const allCardParents = [];
-        while (pendingParentBlocks.length > 0) {
-            const curParentBlock = pendingParentBlocks.shift();
-            const parentUID = cardDataManage.getReturnValue('text', curParentBlock.bParent, 'parent', 'value') ?? undefined;
-            const parentCard = localData.localCardData.find(lc => cardDataManage.getDataUID(lc) === parentUID);
-            if (parentCard) {
-                if (!allCardParents.some(ap => ap.uid === parentUID)) {
-                    allCardParents.push({level: curParentBlock.level, parentCard: parentCard});
-                }
-
-                const parentSubcards = hyperflatArray(cardDataManage.getBlocks(parentCard, 'subcards')?.map(cs => cardDataManage.getReturnValue('set', cs, 'inheritance', 'value')) ?? [], {excludedNulls: true})?.map(val => {
-                    if (val.value && cardDataManage.isBlock(val.value)) 
-                        return val.value;
-                    return undefined;
-                })?.filter(s => cardDataManage.isMatter(s) && cardDataManage.isBlock(s));
-
-                const appendTargetUID = curParentBlock.leadUID ? curParentBlock.leadUID : curParentBlock.bParent.uid ?? undefined;
-                const appendTargetIdx = appendTargetUID ? displayCardDataArray.findIndex(cda => cda.uid === appendTargetUID) : undefined;
-                if (appendTargetIdx !== undefined && appendTargetIdx >= 0) {
-                    displayCardDataArray.splice(appendTargetIdx + 1, 0, ...parentSubcards);
-                }
-
-                findParentIdxFunc(appendTargetUID, curParentBlock.level + 1, parentCard);
-            }
+        if (!cMax || (computedCard.score && computedCard.score > cMax)) {
+            cMax = computedCard.score;
         }
 
-        const cType = hyperflatArray(cardDataManage.getBlocks(displayCardDataArray, "type")?.map(cs => cardDataManage.getReturnValue('cardtype', cs, "type", "value") ?? null), {excludedNulls: true, renderValues: true})[0] ?? "Task";
-
-        var score = undefined;
-        //Status
-        let ctStatus = undefined;
-        const cStatusArray = hyperflatArray(cardDataManage.getBlocks(displayCardDataArray, "status")?.map(cs => cardDataManage.getReturnValue('text', cs, "*", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => {
-            return defaultCardStatus.find(st => st.status === status)
-        })?.filter(status => cardDataManage.isMatter(status)).sort((a, b) => a.scoreAdjust - b.scoreAdjust);
-        if (cStatusArray.length > 0) {
-            ctStatus = cStatusArray[0];
-        }
-
-        //Score adjusted by Deadlines
-        if (!ctStatus || (ctStatus.status !== 'Completed' && ctStatus !== 'Cancelled')) {
-            const cbDeadlines = cardDataManage.getBlocks(displayCardDataArray, "end-date", {notFindUnderCompleteSections: true});
-            const cDS = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_start", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
-            const cDE = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_end", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
-            if (cDE) {
-                const dTE = (cDE - today) / baseTimeUnit;
-                if (!score) score = 0;
-                score += dTE * (dTE >= 0 ? constants.scorePerDaysToEnd : constants.scorePerDaysPassedEnd);
-            }
-            if (cDS) {
-                const dST = (today - cDS) / baseTimeUnit;
-                if (dST > 0) {
-                    if (!score) score = 0;
-                    score -= dST * constants.scorePerDaysPassedStart;
-                }
-            }
-
-            if (!cMin || (score && score < cMin)) {
-                cMin = score;
-            }
-            if (!cMax || (score && score > cMax)) {
-                cMax = score;
-            }
-        }
-        totalCards.push({
-            card: displayCardDataArray, 
-            type: cType,
-            orgCard: orgCardDataArray, 
-            parent: allCardParents,
-            statusTemplate: ctStatus, 
-            score: score
-        });
+        totalCards.push(computedCard);
     });
     let adjMin = Math.min(cMin ?? 0, 0);
     if (adjMin < 0)
@@ -227,15 +146,15 @@ function renderCards(options = null) {
             cardScoreHtml.style.color = colScoreTxtColor.getHSLString();
         }
 
-
-        if (card.type === 'Event') {
+        //สำหรับการ render event scrolling system << มาทำต่อด้วย
+        /*if (card.type === 'Event') {
             const eventCardHandlerHtml = document.createElement('div');
             eventCardHandlerHtml.classList.add('masonry-event-card-handler');
             eventCardHandlerHtml.style.maxWidth = `${masonryContainer.firstChild.offsetWidth}px`;
             masonryEventHandler?.appendChild(eventCardHandlerHtml);
             eventCardHandlerHtml.appendChild(card.html);
             return;
-        }
+        }*/
 
         //console.log(card.arrangement);
         var columnToPlace = columns[0];

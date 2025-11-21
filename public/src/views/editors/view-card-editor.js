@@ -6,7 +6,9 @@ import { elementTemplates } from "../../configs/cards";
 import { closeModalByID, createModalWindow } from "../modals";
 import { forceRenderOpeningPage } from "../pages";
 
+let savedCardJSON = undefined;
 export function getModalCardEditor(cardDataArray = null, options = null) {
+    savedCardJSON = JSON.stringify(cardDataArray);
     const isValidateData = !options || options.bypassValidation !== true;
     const isValueArray = options?.isValueArray === true;
 
@@ -14,6 +16,8 @@ export function getModalCardEditor(cardDataArray = null, options = null) {
     const modal = createModalWindow(cardCreationWindowName, {displayCloseButton: false});
     modal.classList.add("modal-card-creation");
     modal.style.maxWidth = '85%';
+
+   
 
     //Top Panels
     const topPanelHtml = document.createElement('div');
@@ -32,22 +36,41 @@ export function getModalCardEditor(cardDataArray = null, options = null) {
     const rightPanelHtml = document.createElement('div');
     rightPanelHtml.classList.add('view-card-editor-top-subpanel');
     topPanelHtml.appendChild(rightPanelHtml);
+
     //Save Button
     const btnSaveCard = document.createElement('div');
+    const txtSave = document.createElement('span');
+
+    const saveButtonMutationCallback = function(mutationsList, observer) {
+        if (savedCardJSON !== '$edited') {
+            const dataJSON = JSON.stringify(cardDataArray);
+            if (dataJSON !== savedCardJSON) {
+                savedCardJSON = '$edited';
+                txtSave.textContent = "Save this card!";
+            }
+        }
+    };
+    const observer = new MutationObserver(saveButtonMutationCallback);
+    const config = { childList: true, subtree: true, characterData: true };
+    observer.observe(modal, config);
+
     btnSaveCard.classList.add("btn-card-editor", "btn-save");
     rightPanelHtml.appendChild(btnSaveCard);
    /* const icnSave = document.createElement('span');
     icnSave.classList.add('icon', 'material-symbols-outlined');
     icnSave.textContent = 'save';
     btnSaveCard.appendChild(icnSave);*/
-    const txtSave = document.createElement('span');
     txtSave.classList.add("txt");
-    txtSave.textContent = "Save this card";
+    txtSave.textContent = "Close";
     btnSaveCard.appendChild(txtSave);
     btnSaveCard.addEventListener('click', () => {
-        localData.appendLocalCard(cardDataArray);
-        localData.saveCloudCard(cardDataArray);
-        forceRenderOpeningPage();
+        if (savedCardJSON === '$edited') {
+            localData.appendLocalCard(cardDataArray);
+            localData.saveCloudCard(cardDataArray);
+        }
+        forceRenderOpeningPage(savedCardJSON === '$edited');
+        savedCardJSON = undefined;
+        observer.disconnect();
 
         /*if (editorToolbarHtml) {
             editorToolbarHtml.remove();
@@ -63,6 +86,7 @@ export function getModalCardEditor(cardDataArray = null, options = null) {
             closeModalByID(modalID);
         }
     });
+
     //Delete Button
     const btnDeleteCard = document.createElement('div');
     btnDeleteCard.classList.add("btn-card-editor", "btn-delete");
@@ -72,9 +96,9 @@ export function getModalCardEditor(cardDataArray = null, options = null) {
     icnDelete.textContent = 'delete_forever';
     btnDeleteCard.appendChild(icnDelete);
     btnDeleteCard.addEventListener('click', () => {
-        localData.deleteLocalCard(cardDataArray);
-        localData.deleteCloudCard(cardDataArray);
-        forceRenderOpeningPage();
+        cardDataManage.deleteCard(cardDataArray);
+        savedCardJSON = undefined;
+        observer.disconnect();
 
         const modalID = modal.dataset.modalID;
         if (modalID) {
@@ -104,6 +128,9 @@ export function getModalCardEditor(cardDataArray = null, options = null) {
     cardEditor.renderExistingBlocks(modal, cardDataArray);
     //renderEditorToolbar(modal, cardDataArray, "#", "html");
     cardEditor.createInputCarret(modal, cardDataArray, "html", {isValueArray: isValueArray});
+
+    
+
     return modal;
 }
 

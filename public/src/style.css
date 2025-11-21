@@ -2643,6 +2643,17 @@ body {
     z-index: 30;
 }
 
+.area-card-viewer-toolbar-buttons {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    height: auto;
+}
+
 .btn-card-viewer-toolbar-action {
     display: flex;
     flex-direction: row;
@@ -2657,6 +2668,10 @@ body {
     transition: var(--transition-time);
     z-index: 90;
     cursor: pointer;
+}
+
+.btn-card-viewer-toolbar-action.gray {
+    color: rgb(139, 137, 137);
 }
 
 .btn-card-viewer-toolbar-action:hover {

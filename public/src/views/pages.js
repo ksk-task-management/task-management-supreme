@@ -2,6 +2,7 @@ import { areaNotify, iconNotify, pageLogin, pageRegister, pageCardsMasonryList, 
 import { remainingEventCount } from "../events/events";
 import { generateShortId } from "../utils/helpers";
 import * as pgMasonry from "./pages/page-masonry";
+import * as pgCardViewer from "./pages/page-card-viewer";
 
 let timeoutFunction = null;
 const activePagesHistory = [];
@@ -12,8 +13,6 @@ export function displayPage(pageUniqueClass, options = null) {
         displayPage('masonry-list', options);
         return;
     }
-
-    console.log("Page being requested", pageUniqueClass);
 
     const newPageObject = {
         pageID: generateShortId(),
@@ -29,6 +28,11 @@ export function displayPage(pageUniqueClass, options = null) {
     else if (pageUniqueClass === 'masonry-list') {
         newPageObject.pageHtml = pageCardsMasonryList;
         newPageObject.onRender = pgMasonry.render;
+    }
+    else if (pageUniqueClass === 'card-viewer') {
+        newPageObject.pageHtml = pgCardViewer.cardViewerPage;
+        newPageObject.onRender = pgCardViewer.render;
+        newPageObject.closeLastPages = false;
     }
     activePagesHistory.push(newPageObject);
     forceRenderOpeningPage();
@@ -58,16 +62,18 @@ export function getLastPage() {
 
 //export function getLatest
 
-export function forceRenderOpeningPage() {
+export function forceRenderOpeningPage(isRerender = true) {
     const openingPage = getLastPage();
     if (openingPage) {
-        document.querySelectorAll(".page").forEach(p => {
-            p.classList.add('hidden');
-        });
+        if (openingPage.closeLastPages !== false) {
+            document.querySelectorAll(".page").forEach(p => {
+                p.classList.add('hidden');
+            });
+        }
         if (openingPage.pageHtml) {
             openingPage.pageHtml.classList.remove('hidden');
         }
-        if (openingPage.onRender) {
+        if (openingPage.onRender && isRerender) {
             openingPage.onRender(openingPage, openingPage.options);
         }
 
@@ -78,12 +84,12 @@ export function forceRenderOpeningPage() {
     }*/
 }
 
-export function gotoPreviousPage() {
+export function gotoPreviousPage(isRerender = true) {
     if (activePagesHistory.length <= 1) {
         return;
     }
     activePagesHistory.pop();
-    forceRenderOpeningPage();
+    forceRenderOpeningPage(isRerender);
 }
 
 export function toggleNotification(type, message, customIcon = null, accentColor = null, backdropColor = null){

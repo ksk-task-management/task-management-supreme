@@ -2,8 +2,100 @@ import * as cardDataManage from "../../configs/card-data-manage";
 import { defaultCardStatus } from "../../configs/cards";
 import * as pages from "../pages";
 import * as localData from "../../databases/local-data";
-import * as cardViewer from "../pages/page-card-viewer"
+import * as cardViewer from "../pages/page-card-viewer";
+import * as constants from "../../configs/constants";
 import { ColorHSL, getUpperColor, hyperflatArray, setColorOpacity } from "../../utils/helpers";
+
+const today = new Date();
+const baseTimeUnit = constants.timeConvertionUnits.find(tc => tc.name === "Day")?.value ?? 1000 * 60 * 60 * 24;
+export function getComputedCard(orgCardDataArray) {
+    const displayCardDataArray = [...orgCardDataArray];
+            
+    
+            const pendingParentBlocks = [];
+            const findParentIdxFunc = (leadUID, level, cda) => {
+                if (!cda || !Array.isArray(cda))
+                    return;
+                for (let p = 0; p < cda.length; p++) {
+                    if (cda[p].key && cda[p].key === 'parent') {
+                        const newParent = {};
+                        if (leadUID !== undefined)
+                            newParent.leadUID = leadUID;
+                        newParent.bParent = cda[p];
+                        newParent.level = level ?? 0;
+                        pendingParentBlocks.push(newParent);
+                    }
+                }
+            }
+            findParentIdxFunc(undefined, 0, displayCardDataArray);
+            
+            const allCardParents = [];
+            while (pendingParentBlocks.length > 0) {
+                const curParentBlock = pendingParentBlocks.shift();
+                const parentUID = cardDataManage.getReturnValue('text', curParentBlock.bParent, 'parent', 'value') ?? undefined;
+                const parentCard = localData.localCardData.find(lc => cardDataManage.getDataUID(lc) === parentUID);
+                if (parentCard) {
+                    if (!allCardParents.some(ap => ap.uid === parentUID)) {
+                        allCardParents.push({level: curParentBlock.level, parentCard: parentCard});
+                    }
+    
+                    const parentSubcards = hyperflatArray(cardDataManage.getBlocks(parentCard, 'subcards')?.map(cs => cardDataManage.getReturnValue('set', cs, 'inheritance', 'value')) ?? [], {excludedNulls: true})?.map(val => {
+                        if (val.value && cardDataManage.isBlock(val.value)) 
+                            return val.value;
+                        return undefined;
+                    })?.filter(s => cardDataManage.isMatter(s) && cardDataManage.isBlock(s));
+    
+                    const appendTargetUID = curParentBlock.leadUID ? curParentBlock.leadUID : curParentBlock.bParent.uid ?? undefined;
+                    const appendTargetIdx = appendTargetUID ? displayCardDataArray.findIndex(cda => cda.uid === appendTargetUID) : undefined;
+                    if (appendTargetIdx !== undefined && appendTargetIdx >= 0) {
+                        displayCardDataArray.splice(appendTargetIdx + 1, 0, ...parentSubcards);
+                    }
+    
+                    findParentIdxFunc(appendTargetUID, curParentBlock.level + 1, parentCard);
+                }
+            }
+    
+            const cType = hyperflatArray(cardDataManage.getBlocks(displayCardDataArray, "type")?.map(cs => cardDataManage.getReturnValue('cardtype', cs, "type", "value") ?? null), {excludedNulls: true, renderValues: true})[0] ?? "Task";
+    
+            var score = undefined;
+            //Status
+            let ctStatus = undefined;
+            const cStatusArray = hyperflatArray(cardDataManage.getBlocks(displayCardDataArray, "status")?.map(cs => cardDataManage.getReturnValue('text', cs, "*", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => {
+                return defaultCardStatus.find(st => st.status === status)
+            })?.filter(status => cardDataManage.isMatter(status)).sort((a, b) => a.scoreAdjust - b.scoreAdjust);
+            if (cStatusArray.length > 0) {
+                ctStatus = cStatusArray[0];
+            }
+    
+            //Score adjusted by Deadlines
+            if (!ctStatus || (ctStatus.status !== 'Completed' && ctStatus !== 'Cancelled')) {
+                const cbDeadlines = cardDataManage.getBlocks(displayCardDataArray, "end-date", {notFindUnderCompleteSections: true});
+                const cDS = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_start", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
+                const cDE = hyperflatArray(cbDeadlines?.map(cd => cardDataManage.getReturnValue('datetime', cd, "date_end", "value") ?? null), {excludedNulls: true, renderValues: true})?.map(status => new Date(status))?.sort((a, b) => a - b)[0];
+                if (cDE) {
+                    const dTE = (cDE - today) / baseTimeUnit;
+                    if (!score) score = 0;
+                    score += dTE * (dTE >= 0 ? constants.scorePerDaysToEnd : constants.scorePerDaysPassedEnd);
+                }
+                if (cDS) {
+                    const dST = (today - cDS) / baseTimeUnit;
+                    if (dST > 0) {
+                        if (!score) score = 0;
+                        score -= dST * constants.scorePerDaysPassedStart;
+                    }
+                }
+    
+                
+            }
+    return {
+            card: displayCardDataArray, 
+            type: cType,
+            orgCard: orgCardDataArray, 
+            parent: allCardParents,
+            statusTemplate: ctStatus, 
+            score: score
+        };
+}
 
 export function displayCard(cardData) {
     const displayCardDataArray = cardData.card;
@@ -48,7 +140,8 @@ export function displayCard(cardData) {
         cardHtml.addEventListener('click', ev => {
             ev.preventDefault();
             ev.stopPropagation();
-            cardViewer.openCardViewer(cardData);
+            pages.displayPage('card-viewer', {card: cardData});
+            //cardViewer.render(cardData);
             //viewCardEditor.getModalCardEditor(originalCardDataArray);
         });
     }
